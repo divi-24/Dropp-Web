@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_CONFIG } from '../core/config/apiConfig';
+import PLACEHOLDER_IMAGE from '../utils/placeholder';
 import '../styles/Collection.css';
 
 const MasonryGrid = ({ collections, columns = { desktop: 4, tablet: 3, mobile: 2 } }) => {
@@ -28,7 +29,7 @@ const MasonryGrid = ({ collections, columns = { desktop: 4, tablet: 3, mobile: 2
                                 src={displayImage}
                                 alt={collection.title}
                                 onError={(e) => {
-                                    e.target.src = API_CONFIG.BASE_URL + '/images/book.svg';
+                                    e.target.src = PLACEHOLDER_IMAGE;
                                 }}
                             />
                             <div className="masonry-item-overlay">

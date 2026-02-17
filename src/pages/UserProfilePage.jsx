@@ -24,6 +24,8 @@ const UserProfilePage = () => {
     const [collectionsLoading, setCollectionsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isFollowing, setIsFollowing] = useState(false);
+    const [followsMe, setFollowsMe] = useState(false);
+    const [followerCount, setFollowerCount] = useState(0);
     const [showImageZoom, setShowImageZoom] = useState(false);
     const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success' });
 
@@ -48,6 +50,24 @@ const UserProfilePage = () => {
             setError(null);
             const userData = await UserService.getUserById(userId);
             setUser(userData);
+
+            const myId = currentUser?.id || currentUser?._id;
+            if (myId && userData) {
+                // Check if I follow this user (my ID is in their followers list)
+                const followers = userData.followers || [];
+                const amFollowing = followers.some(f => (f?._id || f) === myId);
+                setIsFollowing(amFollowing);
+
+                // Check if this user follows me (their ID is in their following list pointing to me,
+                // OR my followers contain their ID). We check their following array for my ID.
+                const theirFollowing = userData.following || [];
+                const theyFollowMe = theirFollowing.some(f => (f?._id || f) === myId);
+                setFollowsMe(theyFollowMe);
+
+                setFollowerCount(followers.length);
+            } else {
+                setFollowerCount(userData?.followers?.length || 0);
+            }
         } catch (err) {
             console.error('Failed to fetch user:', err);
             setError('User not found');
@@ -69,17 +89,30 @@ const UserProfilePage = () => {
         }
     };
 
-    const handleFollow = () => {
+    const handleFollow = async () => {
         if (!isAuthenticated) {
             navigate('/signup');
             return;
         }
+
+        const prevFollowing = isFollowing;
+        const prevCount = followerCount;
         setIsFollowing(!isFollowing);
-        setSnackbar({
-            show: true,
-            message: isFollowing ? `Unfollowed @${user?.username}` : `Following @${user?.username}`,
-            type: 'success'
-        });
+        setFollowerCount(prev => isFollowing ? prev - 1 : prev + 1);
+
+        try {
+            await UserService.followUser(userId);
+            setSnackbar({
+                show: true,
+                message: isFollowing ? `Unfollowed @${user?.username}` : `Following @${user?.username}`,
+                type: 'success'
+            });
+        } catch (error) {
+            console.error('Failed to follow user:', error);
+            setIsFollowing(prevFollowing);
+            setFollowerCount(prevCount);
+            setSnackbar({ show: true, message: 'Failed to update follow', type: 'error' });
+        }
     };
 
     const handleMessage = () => {
@@ -146,9 +179,10 @@ const UserProfilePage = () => {
         ...user,
         avatar: getProfileImageUrl(),
         isFollowing,
+        followsMe,
         stats: {
-            followers: user.followers || 0,
-            following: user.following || 0,
+            followers: followerCount,
+            following: user.following?.length || user.following || 0,
             collections: collections.length
         }
     };

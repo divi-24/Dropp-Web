@@ -20,7 +20,7 @@ const ProfileHeader = ({
 }) => {
     const [showOptions, setShowOptions] = useState(false);
     const navigate = useNavigate();
-    const { avatar, fullName, username, bio, location, link, pronoun, stats, isFollowing } = user;
+    const { avatar, fullName, username, bio, location, link, pronoun, stats, isFollowing, followsMe } = user;
 
     // Close menu on outside click
     useEffect(() => {
@@ -66,7 +66,7 @@ const ProfileHeader = ({
                                         className={`profile-follow-btn ${isFollowing ? 'following' : ''}`}
                                         onClick={() => { if (onFollow) onFollow(); }}
                                     >
-                                        {isFollowing ? 'Following' : 'Follow'}
+                                        {isFollowing ? 'Following' : (followsMe ? 'Follow Back' : 'Follow')}
                                     </button>
                                     <button
                                         className="profile-message-btn"

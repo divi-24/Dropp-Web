@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Grid, Film, Tag, Bookmark } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { API_CONFIG } from '../core/config/apiConfig';
+import PLACEHOLDER_IMAGE from '../utils/placeholder';
 import { useData } from '../contexts/DataContext';
 import CollectionService from '../core/services/CollectionService';
 import CollectionCard from './CollectionCard';
@@ -117,11 +118,12 @@ const ProfileTabs = ({ collections, activeTab: initialTab = 'collections', onRef
 
     // Generate placeholder images for Pinterest-style grid
     const getGridImages = (collection) => {
-        const mainImage = collection.displayImageUrl?.startsWith('http')
-            ? collection.displayImageUrl
-            : API_CONFIG.BASE_URL + (collection.displayImageUrl || '/images/book.svg');
+        const mainImage = collection.displayImageUrl
+            ? (collection.displayImageUrl.startsWith('http')
+                ? collection.displayImageUrl
+                : API_CONFIG.BASE_URL + collection.displayImageUrl)
+            : PLACEHOLDER_IMAGE;
 
-        // For now, use the same image but we could expand to multiple
         return [mainImage, mainImage, mainImage];
     };
 

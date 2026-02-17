@@ -123,6 +123,20 @@ class UserRepository {
     }
 
     /**
+     * Follow/Unfollow a user
+     * @param {string} userId - Target user ID
+     * @returns {Promise<Object>}
+     */
+    async followUser(userId) {
+        try {
+            const response = await apiClient.get(`${API_CONFIG.ENDPOINTS.FOLLOW_USER}/${userId}`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
      * Get all users (creators)
      * @returns {Promise<Array>}
      */

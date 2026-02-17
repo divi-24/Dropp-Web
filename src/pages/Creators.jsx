@@ -10,7 +10,7 @@ import '../styles/Creators.css';
 
 const Creators = () => {
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user: currentUser } = useAuth();
     const [creators, setCreators] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -52,6 +52,18 @@ const Creators = () => {
             setLoading(true);
             const users = await UserService.getAllUsers();
             setCreators(users);
+
+            // Initialize follow state from data
+            const myId = currentUser?.id || currentUser?._id;
+            if (myId) {
+                const followMap = {};
+                users.forEach(creator => {
+                    const cId = creator._id || creator.id;
+                    const followers = creator.followers || [];
+                    followMap[cId] = followers.some(f => (f?._id || f) === myId);
+                });
+                setFollowing(followMap);
+            }
         } catch (error) {
             console.error('Failed to fetch creators:', error);
         } finally {
@@ -59,16 +71,22 @@ const Creators = () => {
         }
     };
 
-    const handleFollow = (creatorId, e) => {
+    const handleFollow = async (creatorId, e) => {
         e.stopPropagation();
         if (!isAuthenticated) {
             navigate('/signup');
             return;
         }
-        setFollowing(prev => ({
-            ...prev,
-            [creatorId]: !prev[creatorId]
-        }));
+
+        const wasFollowing = following[creatorId];
+        setFollowing(prev => ({ ...prev, [creatorId]: !prev[creatorId] }));
+
+        try {
+            await UserService.followUser(creatorId);
+        } catch (error) {
+            console.error('Failed to follow user:', error);
+            setFollowing(prev => ({ ...prev, [creatorId]: wasFollowing }));
+        }
     };
 
     const handleCreatorClick = (creatorId) => {
@@ -79,6 +97,13 @@ const Creators = () => {
         if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
         if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
         return count?.toString() || '0';
+    };
+
+    const creatorFollowsMe = (creator) => {
+        const myId = currentUser?.id || currentUser?._id;
+        if (!myId) return false;
+        const theirFollowing = creator.following || [];
+        return theirFollowing.some(f => (f?._id || f) === myId);
     };
 
     const getImageUrl = (url) => {
@@ -205,7 +230,7 @@ const Creators = () => {
                                         ) : (
                                             <>
                                                 <UserPlus size={16} />
-                                                Follow
+                                                {creatorFollowsMe(creator) ? 'Follow Back' : 'Follow'}
                                             </>
                                         )}
                                     </button>

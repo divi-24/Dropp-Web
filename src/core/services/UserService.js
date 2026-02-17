@@ -109,6 +109,20 @@ class UserService {
     }
 
     /**
+     * Follow/Unfollow a user
+     * @param {string} userId - Target user ID
+     * @returns {Promise<Object>}
+     */
+    async followUser(userId) {
+        try {
+            return await UserRepository.followUser(userId);
+        } catch (error) {
+            console.error('UserService.followUser error:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Get all users (creators)
      * @returns {Promise<Array>}
      */

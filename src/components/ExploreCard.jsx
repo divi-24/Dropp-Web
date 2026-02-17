@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import { API_CONFIG } from '../core/config/apiConfig';
+import PLACEHOLDER_IMAGE from '../utils/placeholder';
 import '../styles/ExploreCard.css';
 
 const ExploreCard = ({ collection }) => {
@@ -22,7 +23,7 @@ const ExploreCard = ({ collection }) => {
     };
 
     const getImageUrl = (url) => {
-        if (!url) return API_CONFIG.BASE_URL + '/images/book.svg';
+        if (!url) return PLACEHOLDER_IMAGE;
         if (url.startsWith('http')) return url;
         return API_CONFIG.BASE_URL + url;
     };
@@ -45,7 +46,7 @@ const ExploreCard = ({ collection }) => {
                     src={displayImage}
                     alt={collection.title}
                     className="explore-card-image"
-                    onError={(e) => { e.target.src = API_CONFIG.BASE_URL + '/images/book.svg'; }}
+                    onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
                 />
 
                 {/* Hover Overlay */}

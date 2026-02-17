@@ -13,17 +13,21 @@ import {
     UserCheck,
     Package,
     ExternalLink,
-    LayoutGrid
+    LayoutGrid,
+    Calendar
 } from 'lucide-react';
 import CollectionService from '../core/services/CollectionService';
+import UserService from '../core/services/UserService';
 import EditCollectionModal from '../components/EditCollectionModal';
 import AddProductModal from '../components/AddProductModal';
+import ProductCard from '../components/ProductCard';
 import Snackbar from '../components/Snackbar';
 import Footer from '../components/Footer';
 import { ShimmerCollectionDetail } from '../components/Shimmer';
 import { useAuth } from '../contexts/AuthContext';
 import { API_CONFIG } from '../core/config/apiConfig';
 import '../styles/CollectionDetailPage.css';
+import '../styles/ProductMasonryGrid.css';
 
 const CollectionDetailPage = () => {
     const { id } = useParams();
@@ -39,6 +43,7 @@ const CollectionDetailPage = () => {
     const [likeCount, setLikeCount] = useState(0);
     const [products, setProducts] = useState([]);
     const [isFollowing, setIsFollowing] = useState(false);
+    const [followsMe, setFollowsMe] = useState(false);
 
     // Get creator info from collection
     const creator = collection?.createdBy;
@@ -74,6 +79,16 @@ const CollectionDetailPage = () => {
                 const userId = user.id || user._id;
                 const hasLiked = collectionData?.likes?.some(likeId => likeId === userId || likeId?._id === userId);
                 setIsLiked(!!hasLiked);
+
+                // Check follow state from creator data
+                const creatorData = collectionData?.createdBy;
+                if (creatorData) {
+                    const followers = creatorData.followers || [];
+                    setIsFollowing(followers.some(f => (f?._id || f) === userId));
+
+                    const theirFollowing = creatorData.following || [];
+                    setFollowsMe(theirFollowing.some(f => (f?._id || f) === userId));
+                }
             }
         } catch (error) {
             console.error('Failed to fetch collection:', error);
@@ -175,18 +190,27 @@ const CollectionDetailPage = () => {
         }
     };
 
-    const handleFollow = () => {
+    const handleFollow = async () => {
         if (!isAuthenticated) {
             navigate('/signup');
             return;
         }
+
+        const prevFollowing = isFollowing;
         setIsFollowing(!isFollowing);
-        setSnackbar({
-            show: true,
-            message: isFollowing ? `Unfollowed @${creator?.username}` : `Following @${creator?.username}`,
-            type: 'success'
-        });
-        // TODO: Implement follow API call
+
+        try {
+            await UserService.followUser(creator?._id || creator?.id);
+            setSnackbar({
+                show: true,
+                message: isFollowing ? `Unfollowed @${creator?.username}` : `Following @${creator?.username}`,
+                type: 'success'
+            });
+        } catch (error) {
+            console.error('Failed to follow user:', error);
+            setIsFollowing(prevFollowing);
+            setSnackbar({ show: true, message: 'Failed to update follow', type: 'error' });
+        }
     };
 
     const handleCreatorClick = () => {
@@ -305,7 +329,7 @@ const CollectionDetailPage = () => {
                                     ) : (
                                         <>
                                             <UserPlus size={16} />
-                                            Follow
+                                            {followsMe ? 'Follow Back' : 'Follow'}
                                         </>
                                     )}
                                 </button>
@@ -327,6 +351,11 @@ const CollectionDetailPage = () => {
                                 <span className="collection-stat-badge">
                                     <LayoutGrid size={14} /> {products?.length || collection.products?.length || 0} products
                                 </span>
+                                {collection.createdAt && (
+                                    <span className="collection-stat-badge">
+                                        <Calendar size={14} /> {new Date(collection.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -392,36 +421,16 @@ const CollectionDetailPage = () => {
 
                         {/* Product Grid */}
                         {products && products.length > 0 ? (
-                            <div className="product-masonry-grid">
-                                {products.map((product, index) => {
-                                    // Generate a random height for placeholder if no image, or use aspect ratio if image exists
-                                    // ideally we'd use real aspect ratios from metadata, but for now we rely on img tag
-                                    return (
-                                        <div key={product._id || index} className="product-card-masonry">
-                                            {product.media && product.media.length > 0 ? (
-                                                <div className="product-image-container">
-                                                    <img
-                                                        src={getImageUrl(product.media[0])}
-                                                        alt={product.name || 'Product'}
-                                                        className="product-image"
-                                                        onError={(e) => { e.target.src = API_CONFIG.BASE_URL + '/images/book.svg'; }}
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <div
-                                                    className="product-placeholder-image"
-                                                    style={{ height: `${Math.floor(Math.random() * 200) + 150}px` }}
-                                                >
-                                                    <span className="placeholder-text">{product.name?.[0] || 'P'}</span>
-                                                </div>
-                                            )}
-                                            <div className="product-content">
-                                                <h4 className="product-name">{product.name || 'Unnamed Product'}</h4>
-                                                {product.desc && <p className="product-subtitle">{product.desc}</p>}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                            <div className="product-pinterest-grid">
+                                {products.map((product) => (
+                                    <ProductCard
+                                        key={product._id || product.id}
+                                        product={product}
+                                        onDelete={(deletedId) => {
+                                            setProducts(prev => prev.filter(p => (p._id || p.id) !== deletedId));
+                                        }}
+                                    />
+                                ))}
                             </div>
                         ) : (
                             <div className="empty-products-card">

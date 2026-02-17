@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Share2, MoreHorizontal, Edit, Trash2, Link2, Copy, Check, Heart } from 'lucide-react';
 import { API_CONFIG } from '../core/config/apiConfig';
+import PLACEHOLDER_IMAGE from '../utils/placeholder';
 import '../styles/Profile.css';
 
 const CollectionCard = ({
@@ -66,7 +67,7 @@ const CollectionCard = ({
     };
 
     const getImageUrl = (url) => {
-        if (!url) return API_CONFIG.BASE_URL + '/images/book.svg';
+        if (!url) return PLACEHOLDER_IMAGE;
         if (url.startsWith('http')) return url;
         return API_CONFIG.BASE_URL + url;
     };
@@ -75,7 +76,7 @@ const CollectionCard = ({
         // Fix: Use generic placeholder if no display image, NEVER use profile image for collection cover
         const mainImage = collection.displayImageUrl
             ? getImageUrl(collection.displayImageUrl)
-            : API_CONFIG.BASE_URL + '/images/book.svg';
+            : PLACEHOLDER_IMAGE;
 
         return [mainImage, mainImage, mainImage];
     };
@@ -100,7 +101,7 @@ const CollectionCard = ({
                     <img
                         src={gridImages[0]}
                         alt={collection.title}
-                        onError={(e) => { e.target.src = API_CONFIG.BASE_URL + '/images/book.svg'; }}
+                        onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
                     />
                 </div>
                 <div className="board-side-images">
@@ -108,14 +109,14 @@ const CollectionCard = ({
                         <img
                             src={gridImages[1]}
                             alt=""
-                            onError={(e) => { e.target.src = API_CONFIG.BASE_URL + '/images/book.svg'; }}
+                            onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
                         />
                     </div>
                     <div className="board-side-image">
                         <img
                             src={gridImages[2]}
                             alt=""
-                            onError={(e) => { e.target.src = API_CONFIG.BASE_URL + '/images/book.svg'; }}
+                            onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
                         />
                     </div>
                 </div>
