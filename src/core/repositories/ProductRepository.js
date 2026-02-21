@@ -19,6 +19,11 @@ class ProductRepository {
         return response.data;
     }
 
+    async getProductByPId(id) {
+        const response = await apiClient.get(`${API_CONFIG.ENDPOINTS.PRODUCT_BY_PID}/${id}`);
+        return response.data;
+    }
+
     /**
      * Like/Unlike a product
      * @param {string} id - Product ID

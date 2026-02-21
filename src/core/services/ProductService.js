@@ -28,6 +28,16 @@ class ProductService {
         }
     }
 
+    async getProductByPId(id) {
+        try {
+            const response = await ProductRepository.getProductByPId(id);
+            return response.results || response;
+        } catch (error) {
+            console.error('ProductService.getProductByPId error:', error);
+            throw error;
+        }
+    }
+
     /**
      * Like/Unlike a product
      * @param {string} id - Product ID

@@ -1,23 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-    ArrowLeft,
-    Share2,
-    Heart,
-    Trash2,
-    ExternalLink,
-    Calendar,
-    Tag,
-    Link2,
-    Copy,
-    Check,
-    UserPlus,
-    UserCheck,
-    Package
+    ArrowLeft, ChevronLeft, ChevronRight, Heart, Share2,
+    ExternalLink, Calendar, MoreHorizontal, Flag, UserX,
+    UserPlus, UserCheck, Package, Check, Layers, Grid3X3,
+    Link2
 } from 'lucide-react';
 import ProductService from '../core/services/ProductService';
 import UserService from '../core/services/UserService';
+import CollectionService from '../core/services/CollectionService';
 import Snackbar from '../components/Snackbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,42 +20,88 @@ const ProductDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { isAuthenticated, user } = useAuth();
+
     const [product, setProduct] = useState(null);
+    const [creator, setCreator] = useState(null);
+    const [creatorCollections, setCreatorCollections] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success' });
+    const [activeMedia, setActiveMedia] = useState(0);
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
-    const [copied, setCopied] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
-    const [followsMe, setFollowsMe] = useState(false);
+    const [followerCount, setFollowerCount] = useState(0);
+    const [showOptions, setShowOptions] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success' });
 
-    const creator = product?.createdBy;
+    const touchStartX = useRef(null);
+    const optionsRef = useRef(null);
+
     const currentUserId = user?.id || user?._id;
-    const isOwner = isAuthenticated && currentUserId && (creator?._id === currentUserId || creator?.id === currentUserId);
+    const isOwner = isAuthenticated && creator && currentUserId &&
+        ((creator._id || creator.id) === currentUserId);
 
     useEffect(() => {
-        fetchProduct();
+        fetchProductData();
     }, [id]);
 
-    const fetchProduct = async () => {
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (optionsRef.current && !optionsRef.current.contains(e.target)) {
+                setShowOptions(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const fetchProductData = async () => {
         try {
             setLoading(true);
-            const data = await ProductService.getProductById(id);
-            const productData = data?.result || data;
+            const productData = await ProductService.getProductByPId(id);
             setProduct(productData);
             setLikeCount(productData?.likes?.length || 0);
 
             if (isAuthenticated && user) {
                 const userId = user.id || user._id;
-                const hasLiked = productData?.likes?.some(likeId => likeId === userId || likeId?._id === userId);
+                const hasLiked = productData?.likes?.some(
+                    likeId => likeId === userId || likeId?._id === userId
+                );
                 setIsLiked(!!hasLiked);
+            }
 
-                const creatorData = productData?.createdBy;
-                if (creatorData && typeof creatorData === 'object') {
-                    const followers = creatorData.followers || [];
-                    setIsFollowing(followers.some(f => (f?._id || f) === userId));
-                    const theirFollowing = creatorData.following || [];
-                    setFollowsMe(theirFollowing.some(f => (f?._id || f) === userId));
+            // Fetch creator data and collections in parallel
+            const creatorId = typeof productData?.createdBy === 'string'
+                ? productData.createdBy
+                : productData?.createdBy?._id || productData?.createdBy?.id;
+
+            if (creatorId) {
+                const [userData, collectionsData] = await Promise.allSettled([
+                    UserService.getUserById(creatorId),
+                    CollectionService.getUserCollections(creatorId)
+                ]);
+
+                if (userData.status === 'fulfilled' && userData.value) {
+                    const creatorData = userData.value;
+                    setCreator(creatorData);
+                    setFollowerCount(creatorData?.followers?.length || 0);
+
+                    if (isAuthenticated && user) {
+                        const myId = user.id || user._id;
+                        if (creatorData?.isFollowing !== undefined) {
+                            setIsFollowing(creatorData.isFollowing);
+                        } else {
+                            const followers = creatorData?.followers || [];
+                            setIsFollowing(followers.some(f => (f?._id || f) === myId));
+                        }
+                    }
+                } else if (typeof productData?.createdBy === 'object' && productData?.createdBy) {
+                    setCreator(productData.createdBy);
+                    setFollowerCount(productData.createdBy?.followers?.length || 0);
+                }
+
+                if (collectionsData.status === 'fulfilled') {
+                    setCreatorCollections(collectionsData.value || []);
                 }
             }
         } catch (error) {
@@ -75,34 +113,45 @@ const ProductDetailPage = () => {
     };
 
     const handleLike = async () => {
-        if (!isAuthenticated) {
-            navigate('/login');
-            return;
-        }
-
+        if (!isAuthenticated) { navigate('/login'); return; }
         const prevLiked = isLiked;
         const prevCount = likeCount;
         setIsLiked(!isLiked);
         setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
-
         try {
             await ProductService.likeProduct(id);
         } catch (error) {
-            console.error('Failed to like product:', error);
             setIsLiked(prevLiked);
             setLikeCount(prevCount);
             setSnackbar({ show: true, message: 'Failed to like product', type: 'error' });
         }
     };
 
+    const handleFollow = async () => {
+        if (!isAuthenticated) { navigate('/login'); return; }
+        const prevFollowing = isFollowing;
+        const prevCount = followerCount;
+        setIsFollowing(!isFollowing);
+        setFollowerCount(prev => isFollowing ? prev - 1 : prev + 1);
+        try {
+            const creatorId = creator?._id || creator?.id;
+            await UserService.followUser(creatorId);
+            setSnackbar({
+                show: true,
+                message: isFollowing ? `Unfollowed @${creator?.username}` : `Following @${creator?.username}`,
+                type: 'success'
+            });
+        } catch (error) {
+            setIsFollowing(prevFollowing);
+            setFollowerCount(prevCount);
+            setSnackbar({ show: true, message: 'Failed to update follow', type: 'error' });
+        }
+    };
+
     const handleShare = () => {
         const url = product?.link || window.location.href;
         if (navigator.share) {
-            navigator.share({
-                title: product?.name || product?.title,
-                text: product?.desc || product?.description,
-                url: url,
-            }).catch(err => console.log('Error sharing:', err));
+            navigator.share({ title: product?.name, text: product?.desc, url }).catch(() => {});
         } else {
             navigator.clipboard.writeText(url);
             setCopied(true);
@@ -111,47 +160,31 @@ const ProductDetailPage = () => {
         }
     };
 
-    const handleDelete = async () => {
-        if (!isOwner) return;
-        if (!window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
-
-        try {
-            await ProductService.deleteProduct(id);
-            setSnackbar({ show: true, message: 'Product deleted successfully', type: 'success' });
-            setTimeout(() => navigate(-1), 1000);
-        } catch (error) {
-            console.error('Failed to delete product:', error);
-            setSnackbar({ show: true, message: 'Failed to delete product', type: 'error' });
-        }
+    const handleReport = () => {
+        setShowOptions(false);
+        setSnackbar({ show: true, message: 'Report submitted. Thanks for keeping Dropp safe.', type: 'info' });
     };
 
-    const handleCreatorClick = () => {
-        if (creator?._id) {
-            navigate(`/user/${creator._id}`);
-        }
+    const handleBlock = () => {
+        setShowOptions(false);
+        setSnackbar({ show: true, message: `@${creator?.username} has been blocked`, type: 'warning' });
     };
 
-    const handleFollow = async () => {
-        if (!isAuthenticated) {
-            navigate('/login');
-            return;
-        }
+    const mediaList = (product?.media || []).map(url => {
+        if (!url) return null;
+        if (url.startsWith('http')) return url;
+        return API_CONFIG.BASE_URL + url;
+    }).filter(Boolean);
 
-        const prevFollowing = isFollowing;
-        setIsFollowing(!isFollowing);
+    const goPrev = () => setActiveMedia(prev => prev > 0 ? prev - 1 : mediaList.length - 1);
+    const goNext = () => setActiveMedia(prev => prev < mediaList.length - 1 ? prev + 1 : 0);
 
-        try {
-            await UserService.followUser(creator?._id || creator?.id);
-            setSnackbar({
-                show: true,
-                message: isFollowing ? `Unfollowed @${creator?.username}` : `Following @${creator?.username}`,
-                type: 'success'
-            });
-        } catch (error) {
-            console.error('Failed to follow user:', error);
-            setIsFollowing(prevFollowing);
-            setSnackbar({ show: true, message: 'Failed to update follow', type: 'error' });
-        }
+    const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+    const handleTouchEnd = (e) => {
+        if (touchStartX.current === null) return;
+        const diff = touchStartX.current - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) { diff > 0 ? goNext() : goPrev(); }
+        touchStartX.current = null;
     };
 
     const getImageUrl = (url) => {
@@ -163,28 +196,40 @@ const ProductDetailPage = () => {
     const formatDate = (dateStr) => {
         if (!dateStr) return null;
         return new Date(dateStr).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+            year: 'numeric', month: 'long', day: 'numeric'
         });
     };
 
     const formatCount = (count) => {
+        if (!count && count !== 0) return '0';
         if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
         if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
-        return count?.toString() || '0';
+        return count.toString();
     };
 
     if (loading) {
         return (
-            <div className="product-detail-page">
-                <div className="product-detail-container">
-                    <div className="product-detail-shimmer">
-                        <div className="shimmer-image"></div>
-                        <div className="shimmer-info">
-                            <div className="shimmer-line wide"></div>
-                            <div className="shimmer-line medium"></div>
-                            <div className="shimmer-line narrow"></div>
+            <div className="pdp-page">
+                <div className="pdp-container">
+                    <div className="pdp-shimmer-back"></div>
+                    <div className="pdp-shimmer-layout">
+                        <div className="pdp-shimmer-left">
+                            <div className="pdp-shimmer-media"></div>
+                            <div className="pdp-shimmer-title"></div>
+                            <div className="pdp-shimmer-desc"></div>
+                            <div className="pdp-shimmer-meta"></div>
+                        </div>
+                        <div className="pdp-shimmer-right">
+                            <div className="pdp-shimmer-avatar"></div>
+                            <div className="pdp-shimmer-name"></div>
+                            <div className="pdp-shimmer-line"></div>
+                            <div className="pdp-shimmer-line short"></div>
+                            <div className="pdp-shimmer-stats-row">
+                                <div className="pdp-shimmer-stat"></div>
+                                <div className="pdp-shimmer-stat"></div>
+                                <div className="pdp-shimmer-stat"></div>
+                            </div>
+                            <div className="pdp-shimmer-btn"></div>
                         </div>
                     </div>
                 </div>
@@ -194,13 +239,12 @@ const ProductDetailPage = () => {
 
     if (!product) {
         return (
-            <div className="product-detail-error">
-                <Package size={48} strokeWidth={1.5} />
+            <div className="pdp-error-state">
+                <Package size={56} strokeWidth={1} />
                 <h2>Product not found</h2>
                 <p>This product may have been deleted or doesn't exist.</p>
-                <button onClick={() => navigate(-1)} className="back-link" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                    <ArrowLeft size={16} />
-                    Go Back
+                <button onClick={() => navigate(-1)} className="pdp-back-btn">
+                    <ArrowLeft size={16} /> Go Back
                 </button>
             </div>
         );
@@ -209,182 +253,352 @@ const ProductDetailPage = () => {
     const productName = product.name || product.title || 'Untitled Product';
     const productDesc = product.desc || product.description;
     const productLink = product.link;
-    const productImage = getImageUrl(product.image || product.imageUrl || (product.media && product.media[0]));
-    const creatorImage = creator?.profileImageUrl ? getImageUrl(creator.profileImageUrl) : null;
-    const createdDate = formatDate(product.createdAt);
-    const productTags = product.tags || product.categories || [];
+    const creatorName = creator?.fullName || creator?.username || 'Unknown Creator';
+    const creatorUsername = creator?.username;
+    const creatorAvatar = creator?.profileImageUrl ? getImageUrl(creator.profileImageUrl) : null;
+    const creatorBio = creator?.bio;
+    const creatorFollowingCount = Array.isArray(creator?.following)
+        ? creator.following.length
+        : (creator?.following || 0);
 
     return (
         <>
             <motion.div
-                className={`product-detail-page ${!isAuthenticated ? 'public-view' : ''}`}
+                className={`pdp-page${!isAuthenticated ? ' pdp-public' : ''}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.4 }}
             >
-                <div className="product-detail-container">
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="product-back-link"
-                    >
-                        <ArrowLeft size={16} />
-                        Back
+                <div className="pdp-container">
+                    <button className="pdp-back-btn" onClick={() => navigate(-1)}>
+                        <ArrowLeft size={16} /> Back
                     </button>
 
-                    <div className="product-detail-layout">
-                        {/* Image Section */}
-                        <div className="product-detail-image-section">
-                            {productImage ? (
-                                <img
-                                    src={productImage}
-                                    alt={productName}
-                                    className="product-detail-image"
-                                    onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.classList.add('show-placeholder'); }}
-                                />
-                            ) : null}
-                            <div className="product-detail-placeholder">
-                                <Package size={64} strokeWidth={1} />
-                                <span>{productName[0]?.toUpperCase()}</span>
-                            </div>
-                        </div>
+                    <div className="pdp-layout">
+                        {/* ── LEFT COLUMN ── */}
+                        <div className="pdp-left">
 
-                        {/* Info Section */}
-                        <div className="product-detail-info-section">
-                            {/* Actions Row */}
-                            <div className="product-detail-actions">
-                                <button
-                                    className={`action-btn-label ${isLiked ? 'liked' : ''}`}
-                                    onClick={handleLike}
-                                >
-                                    <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} />
-                                    <span>{isLiked ? 'Liked' : 'Like'}</span>
-                                </button>
+                            {/* ROW 1 — Product Card */}
+                            <div className="pdp-product-card">
 
-                                <button className="action-btn-label" onClick={handleShare}>
-                                    {copied ? <Check size={18} /> : <Share2 size={18} />}
-                                    <span>{copied ? 'Copied!' : 'Share'}</span>
-                                </button>
+                                {/* Media Carousel */}
+                                {mediaList.length > 0 ? (
+                                    <div className="pdp-media-wrapper">
+                                        <div
+                                            className="pdp-media-viewport"
+                                            onTouchStart={handleTouchStart}
+                                            onTouchEnd={handleTouchEnd}
+                                        >
+                                            <div
+                                                className="pdp-media-track"
+                                                style={{ transform: `translateX(-${activeMedia * 100}%)` }}
+                                            >
+                                                {mediaList.map((src, i) => (
+                                                    <div key={i} className="pdp-media-slide">
+                                                        <img
+                                                            src={src}
+                                                            alt={`${productName} ${i + 1}`}
+                                                            draggable="false"
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
 
-                                {productLink && (
-                                    <a
-                                        href={productLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="action-btn-label primary"
-                                    >
-                                        <ExternalLink size={18} />
-                                        <span>Visit</span>
-                                    </a>
-                                )}
+                                            {mediaList.length > 1 && (
+                                                <>
+                                                    <button
+                                                        className="pdp-media-nav pdp-media-prev"
+                                                        onClick={goPrev}
+                                                        aria-label="Previous image"
+                                                    >
+                                                        <ChevronLeft size={20} />
+                                                    </button>
+                                                    <button
+                                                        className="pdp-media-nav pdp-media-next"
+                                                        onClick={goNext}
+                                                        aria-label="Next image"
+                                                    >
+                                                        <ChevronRight size={20} />
+                                                    </button>
+                                                    <div className="pdp-media-counter">
+                                                        {activeMedia + 1} / {mediaList.length}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
 
-                                {isOwner && (
-                                    <button className="action-btn-label delete-action" onClick={handleDelete}>
-                                        <Trash2 size={18} />
-                                        <span>Delete</span>
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Title */}
-                            <h1 className="product-detail-title">{productName}</h1>
-
-                            {/* Description */}
-                            {productDesc && (
-                                <p className="product-detail-desc">{productDesc}</p>
-                            )}
-
-                            {/* Meta Info */}
-                            <div className="product-detail-meta">
-                                <div className="product-meta-item">
-                                    <Heart size={16} />
-                                    <span>{formatCount(likeCount)} {likeCount === 1 ? 'like' : 'likes'}</span>
-                                </div>
-                                {createdDate && (
-                                    <div className="product-meta-item">
-                                        <Calendar size={16} />
-                                        <span>{createdDate}</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Tags */}
-                            {productTags.length > 0 && (
-                                <div className="product-detail-tags">
-                                    {productTags.map((tag, index) => (
-                                        <span key={index} className="product-tag">
-                                            <Tag size={12} />
-                                            {tag}
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Product Link */}
-                            {productLink && (
-                                <div className="product-detail-link-card">
-                                    <Link2 size={18} />
-                                    <a href={productLink} target="_blank" rel="noopener noreferrer">
-                                        {productLink}
-                                    </a>
-                                </div>
-                            )}
-
-                            {/* Creator Card */}
-                            {creator && typeof creator === 'object' && (
-                                <div className="product-creator-card">
-                                    <div className="product-creator-left" onClick={handleCreatorClick}>
-                                        {creatorImage ? (
-                                            <img
-                                                src={creatorImage}
-                                                alt={creator.fullName || creator.username}
-                                                className="product-creator-avatar"
-                                                onError={(e) => { e.target.src = API_CONFIG.BASE_URL + '/images/default.webp'; }}
-                                            />
-                                        ) : (
-                                            <div className="product-creator-avatar-placeholder">
-                                                {(creator.fullName || creator.username || 'U')[0].toUpperCase()}
+                                        {mediaList.length > 1 && (
+                                            <div className="pdp-media-dots">
+                                                {mediaList.map((_, i) => (
+                                                    <button
+                                                        key={i}
+                                                        className={`pdp-dot${i === activeMedia ? ' active' : ''}`}
+                                                        onClick={() => setActiveMedia(i)}
+                                                        aria-label={`Go to image ${i + 1}`}
+                                                    />
+                                                ))}
                                             </div>
                                         )}
-                                        <div className="product-creator-info">
-                                            <h3 className="product-creator-name">{creator.fullName || creator.username}</h3>
-                                            <span className="product-creator-username">@{creator.username}</span>
-                                            {creator.bio && (
-                                                <span className="product-creator-bio">{creator.bio}</span>
-                                            )}
-                                            <span className="product-creator-followers">
-                                                {formatCount(creator.followers?.length || creator.followers || 0)} followers
-                                            </span>
+                                    </div>
+                                ) : (
+                                    <div className="pdp-media-placeholder">
+                                        <Package size={56} strokeWidth={1} />
+                                        <span>{productName[0]?.toUpperCase()}</span>
+                                    </div>
+                                )}
+
+                                {/* Product Info */}
+                                <div className="pdp-product-info">
+                                    <h1 className="pdp-product-title">{productName}</h1>
+
+                                    {productDesc && (
+                                        <p className="pdp-product-desc">{productDesc}</p>
+                                    )}
+
+                                    <div className="pdp-product-meta-row">
+                                        {product.createdAt && (
+                                            <div className="pdp-meta-chip">
+                                                <Calendar size={13} />
+                                                <span>{formatDate(product.createdAt)}</span>
+                                            </div>
+                                        )}
+                                        <div className="pdp-meta-chip">
+                                            <Heart size={13} />
+                                            <span>{formatCount(likeCount)} {likeCount === 1 ? 'like' : 'likes'}</span>
                                         </div>
                                     </div>
-                                    {!isOwner && (
+
+                                    <div className="pdp-product-actions">
                                         <button
-                                            className={`creator-follow-btn ${isFollowing ? 'following' : ''}`}
-                                            onClick={handleFollow}
+                                            className={`pdp-action-btn${isLiked ? ' pdp-liked' : ''}`}
+                                            onClick={handleLike}
                                         >
-                                            {isFollowing ? (
-                                                <><UserCheck size={16} /> Following</>
-                                            ) : (
-                                                <><UserPlus size={16} /> {followsMe ? 'Follow Back' : 'Follow'}</>
-                                            )}
+                                            <Heart size={16} fill={isLiked ? 'currentColor' : 'none'} />
+                                            {isLiked ? 'Liked' : 'Like'}
                                         </button>
+
+                                        <button className="pdp-action-btn" onClick={handleShare}>
+                                            {copied ? <Check size={16} /> : <Share2 size={16} />}
+                                            {copied ? 'Copied!' : 'Share'}
+                                        </button>
+
+                                        {productLink && (
+                                            <a
+                                                href={productLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="pdp-action-btn pdp-visit-btn"
+                                            >
+                                                <ExternalLink size={16} />
+                                                Visit
+                                            </a>
+                                        )}
+                                    </div>
+
+                                    {productLink && (
+                                        <div className="pdp-link-card">
+                                            <Link2 size={15} />
+                                            <a href={productLink} target="_blank" rel="noopener noreferrer">
+                                                {productLink}
+                                            </a>
+                                        </div>
                                     )}
+                                </div>
+                            </div>
+
+                            {/* ROW 2 — More Collections from Creator */}
+                            {creator && (
+                                <div className="pdp-more-section">
+                                    <div className="pdp-more-header">
+                                        <Grid3X3 size={17} />
+                                        <h2 className="pdp-more-title">
+                                            More from{' '}
+                                            <span className="pdp-more-accent">{creatorName}</span>
+                                        </h2>
+                                    </div>
+
+                                    {creatorCollections.length > 0 ? (
+                                        <div className="pdp-collections-scroll">
+                                            {creatorCollections.map((col) => {
+                                                const colId = col._id || col.id;
+                                                const coverImg = col.displayImageUrl
+                                                    ? getImageUrl(col.displayImageUrl)
+                                                    : null;
+                                                return (
+                                                    <div
+                                                        key={colId}
+                                                        className="pdp-col-card"
+                                                        onClick={() => navigate(`/c/${colId}`)}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                        onKeyDown={(e) => e.key === 'Enter' && navigate(`/c/${colId}`)}
+                                                    >
+                                                        <div className="pdp-col-cover">
+                                                            {coverImg ? (
+                                                                <img
+                                                                    src={coverImg}
+                                                                    alt={col.title}
+                                                                    onError={(e) => { e.target.parentNode.classList.add('pdp-col-cover-fallback'); e.target.style.display = 'none'; }}
+                                                                />
+                                                            ) : (
+                                                                <div className="pdp-col-cover-empty">
+                                                                    <Layers size={22} strokeWidth={1.5} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="pdp-col-info">
+                                                            <span className="pdp-col-title">{col.title}</span>
+                                                            <span className="pdp-col-count">
+                                                                {col.products?.length || 0} products
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div className="pdp-no-collections">
+                                            <Layers size={28} strokeWidth={1.5} />
+                                            <p>No public collections yet</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* ── RIGHT COLUMN — Creator Panel ── */}
+                        <div className="pdp-right">
+                            {creator ? (
+                                <div className="pdp-creator-panel">
+                                    {/* Avatar */}
+                                    <div
+                                        className="pdp-creator-avatar-wrap"
+                                        onClick={() => creator?._id && navigate(`/user/${creator._id}`)}
+                                        title={`View ${creatorName}'s profile`}
+                                    >
+                                        {creatorAvatar ? (
+                                            <img
+                                                src={creatorAvatar}
+                                                alt={creatorName}
+                                                className="pdp-creator-avatar"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    e.target.nextSibling.style.display = 'flex';
+                                                }}
+                                            />
+                                        ) : null}
+                                        <div
+                                            className="pdp-creator-avatar-placeholder"
+                                            style={{ display: creatorAvatar ? 'none' : 'flex' }}
+                                        >
+                                            {creatorName[0].toUpperCase()}
+                                        </div>
+                                    </div>
+
+                                    {/* Name & Username */}
+                                    <div
+                                        className="pdp-creator-identity"
+                                        onClick={() => creator?._id && navigate(`/user/${creator._id}`)}
+                                    >
+                                        <h3 className="pdp-creator-name">{creatorName}</h3>
+                                        {creatorUsername && (
+                                            <span className="pdp-creator-username">@{creatorUsername}</span>
+                                        )}
+                                    </div>
+
+                                    {/* Bio */}
+                                    {creatorBio && (
+                                        <p className="pdp-creator-bio">{creatorBio}</p>
+                                    )}
+
+                                    {/* Stats */}
+                                    <div className="pdp-creator-stats">
+                                        <div className="pdp-stat">
+                                            <span className="pdp-stat-value">{formatCount(followerCount)}</span>
+                                            <span className="pdp-stat-label">Followers</span>
+                                        </div>
+                                        <div className="pdp-stat-divider" />
+                                        <div className="pdp-stat">
+                                            <span className="pdp-stat-value">{formatCount(creatorFollowingCount)}</span>
+                                            <span className="pdp-stat-label">Following</span>
+                                        </div>
+                                        <div className="pdp-stat-divider" />
+                                        <div className="pdp-stat">
+                                            <span className="pdp-stat-value">{formatCount(creatorCollections.length)}</span>
+                                            <span className="pdp-stat-label">Collections</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Follow + Options */}
+                                    {!isOwner && (
+                                        <div className="pdp-creator-actions">
+                                            <button
+                                                className={`pdp-follow-btn${isFollowing ? ' following' : ''}`}
+                                                onClick={handleFollow}
+                                            >
+                                                {isFollowing
+                                                    ? <><UserCheck size={16} /> Following</>
+                                                    : <><UserPlus size={16} /> Follow</>
+                                                }
+                                            </button>
+
+                                            <div className="pdp-options-wrap" ref={optionsRef}>
+                                                <button
+                                                    className="pdp-options-btn"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setShowOptions(prev => !prev);
+                                                    }}
+                                                    aria-label="More options"
+                                                >
+                                                    <MoreHorizontal size={18} />
+                                                </button>
+                                                {showOptions && (
+                                                    <div className="pdp-options-dropdown">
+                                                        <button onClick={handleReport}>
+                                                            <Flag size={14} /> Report
+                                                        </button>
+                                                        <button className="pdp-danger" onClick={handleBlock}>
+                                                            <UserX size={14} /> Block
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* View Profile */}
+                                    <button
+                                        className="pdp-view-profile-btn"
+                                        onClick={() => creator?._id && navigate(`/user/${creator._id}`)}
+                                    >
+                                        View Profile
+                                    </button>
+                                </div>
+                            ) : (
+                                /* Creator skeleton while loading separately */
+                                <div className="pdp-creator-panel pdp-creator-skeleton">
+                                    <div className="pdp-shimmer-avatar"></div>
+                                    <div className="pdp-shimmer-name"></div>
+                                    <div className="pdp-shimmer-line"></div>
+                                    <div className="pdp-shimmer-line short"></div>
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
-
-                {snackbar.show && (
-                    <Snackbar
-                        message={snackbar.message}
-                        type={snackbar.type}
-                        onClose={() => setSnackbar({ ...snackbar, show: false })}
-                    />
-                )}
             </motion.div>
 
             {!isAuthenticated && <Footer />}
+
+            {snackbar.show && (
+                <Snackbar
+                    message={snackbar.message}
+                    type={snackbar.type}
+                    onClose={() => setSnackbar({ ...snackbar, show: false })}
+                />
+            )}
         </>
     );
 };

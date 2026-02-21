@@ -21,6 +21,7 @@ export const API_CONFIG = {
         DELETE_PRODUCT: '/product',
         SEARCH_PRODUCTS: '/product/search', // GET /product/search?q={query}
         UPDATE_PRODUCT: '/product/pId', // PATCH /product/pId/{productId}
+        PRODUCT_BY_PID: '/product/pId', // GET /product/pId/{productId}
     },
     TIMEOUT: 10000,
 };
