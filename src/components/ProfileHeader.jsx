@@ -94,55 +94,53 @@ const ProfileHeader = ({
                                 </button>
                             )}
 
-                            <div className="profile-menu-container">
-                                <button
-                                    className="profile-options-btn"
-                                    onClick={(e) => { e.stopPropagation(); setShowOptions(!showOptions); }}
-                                >
-                                    <MoreHorizontal size={20} />
-                                </button>
+                            {!isOwnProfile && (
+                                <div className="profile-menu-container">
+                                    <button
+                                        className="profile-options-btn"
+                                        onClick={(e) => { e.stopPropagation(); setShowOptions(!showOptions); }}
+                                    >
+                                        <MoreHorizontal size={20} />
+                                    </button>
 
-                                <AnimatePresence>
-                                    {showOptions && (
-                                        <motion.div
-                                            className="profile-options-menu"
-                                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                            transition={{ duration: 0.15 }}
-                                        >
-                                            <button onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (onShareProfile) onShareProfile();
-                                                setShowOptions(false);
-                                            }}>
-                                                <Share2 size={16} />
-                                                Share Profile
-                                            </button>
-                                            {!isOwnProfile && (
-                                                <>
-                                                    <button onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (onBlock) onBlock();
-                                                        setShowOptions(false);
-                                                    }}>
-                                                        <Ban size={16} />
-                                                        Block
-                                                    </button>
-                                                    <button className="danger" onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (onReport) onReport();
-                                                        setShowOptions(false);
-                                                    }}>
-                                                        <Flag size={16} />
-                                                        Report
-                                                    </button>
-                                                </>
-                                            )}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+                                    <AnimatePresence>
+                                        {showOptions && (
+                                            <motion.div
+                                                className="profile-options-menu"
+                                                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                transition={{ duration: 0.15 }}
+                                            >
+                                                <button onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (onShareProfile) onShareProfile();
+                                                    setShowOptions(false);
+                                                }}>
+                                                    <Share2 size={16} />
+                                                    Share Profile
+                                                </button>
+                                                <button onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (onBlock) onBlock();
+                                                    setShowOptions(false);
+                                                }}>
+                                                    <Ban size={16} />
+                                                    Block
+                                                </button>
+                                                <button className="danger" onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (onReport) onReport();
+                                                    setShowOptions(false);
+                                                }}>
+                                                    <Flag size={16} />
+                                                    Report
+                                                </button>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            )}
                         </div>
                     </div>
 

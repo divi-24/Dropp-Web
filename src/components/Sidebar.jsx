@@ -30,7 +30,7 @@ const Sidebar = () => {
     ];
 
     const userNavItems = isAuthenticated ? [
-        { path: `/profile/${user?.username || 'me'}`, label: 'Profile', icon: User },
+        { path: '/profile/me', label: 'Profile', icon: User },
         { path: '/notifications', label: 'Notifications', icon: Bell },
         { path: '/settings', label: 'Settings', icon: SettingsIcon },
     ] : [];

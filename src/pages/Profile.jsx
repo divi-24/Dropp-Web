@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ProfileHeader from '../components/ProfileHeader';
 import ProfileTabs from '../components/ProfileTabs';
@@ -17,14 +17,16 @@ import Snackbar from '../components/Snackbar';
 
 const Profile = () => {
     const { username } = useParams();
-    const [user, setUser] = React.useState(null);
-    const [loading, setLoading] = React.useState(true);
-    const [error, setError] = React.useState(null);
-    const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
-    const [snackbar, setSnackbar] = React.useState({ show: false, message: '', type: 'success' });
+    const navigate = useNavigate();
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success' });
+    const [isOwnProfile, setIsOwnProfile] = useState(username === 'me' || !username);
 
     // Local state for collections to use the specific endpoint
-    const [profileCollections, setProfileCollections] = React.useState([]);
+    const [profileCollections, setProfileCollections] = useState([]);
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -33,23 +35,25 @@ const Profile = () => {
                 setError(null);
 
                 let profileData;
+                const currentUser = await UserService.getUserProfile().catch(() => null);
 
                 // Determine which user to fetch
                 if (username === 'me' || !username) {
                     // Fetch own profile
-                    profileData = await UserService.getUserProfile();
+                    profileData = currentUser;
+                    setIsOwnProfile(true);
                 } else {
-                    // Check if the username matches the current logged-in user (optimization)
-                    const currentUser = await UserService.getUserProfile().catch(() => null);
+                    // Fetch specific user by username
+                    const result = await UserService.getUserByUsername(username);
+                    // Handle different response structures
+                    profileData = result.result || result.user || result;
 
-                    if (currentUser && currentUser.username === username) {
-                        profileData = currentUser;
-                    } else {
-                        // Fetch specific user by username
-                        const result = await UserService.getUserByUsername(username);
-                        // Handle different response structures
-                        profileData = result.result || result.user || result;
+                    // If the fetched profile is the current user's profile, redirect to /profile/me
+                    if (currentUser && profileData && (currentUser._id === profileData._id || currentUser.id === profileData.id)) {
+                        navigate('/profile/me', { replace: true });
+                        return;
                     }
+                    setIsOwnProfile(false);
                 }
 
                 if (!profileData) {
@@ -75,10 +79,7 @@ const Profile = () => {
         };
 
         fetchProfileData();
-    }, [username]);
-
-    // Check if we are viewing our own profile
-    const isOwnProfile = username === 'me' || !username;
+    }, [username, navigate]);
 
     const handleFollow = () => {
         console.log('Follow/Unfollow user');
