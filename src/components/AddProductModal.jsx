@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader, Link as LinkIcon, Image as ImageIcon, Type, FileText, Upload, Trash2, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import CollectionService from '../core/services/CollectionService';
 import ProductService from '../core/services/ProductService';
+import { compressImage, isWithinSizeLimit, getTotalSizeMB } from '../utils/mediaUtils';
 import Snackbar from './Snackbar';
 import '../styles/CreateCollectionModal.css';
 
@@ -44,12 +45,17 @@ const AddProductModal = ({ isOpen, onClose, collectionId, onProductAdded, produc
 
             const existingMedia = productToEdit.media || (productToEdit.image ? [productToEdit.image] : []) || [];
             if (existingMedia.length > 0) {
-                const previews = existingMedia.map(url => ({
-                    url: url.startsWith('http') ? url : import.meta.env.VITE_API_BASE_URL + url,
-                    type: url.match(/\.(mp4|webm|ogg)$/i) ? 'video' : 'image', // Basic guess
-                    name: 'Existing Media',
-                    isExisting: true
-                }));
+                const previews = existingMedia.map(item => {
+                    const url = typeof item === 'object' ? item.url : item;
+                    const type = (typeof item === 'object' ? item.resourceType : (url.match(/\.(mp4|webm|ogg)$/i) ? 'video' : 'image')) || 'image';
+                    
+                    return {
+                        url: url.startsWith('http') ? url : import.meta.env.VITE_API_BASE_URL + url,
+                        type: type === 'video' || url.match(/\.(mp4|webm|ogg)$/i) ? 'video' : 'image',
+                        name: 'Existing Media',
+                        isExisting: true
+                    };
+                });
                 setMediaPreviews(previews);
             }
         } else if (isOpen && !productToEdit) {
@@ -68,6 +74,11 @@ const AddProductModal = ({ isOpen, onClose, collectionId, onProductAdded, produc
     const handleFilesSelection = (files) => {
         const newFiles = [];
         const newPreviews = [];
+        const MAX_TOTAL_SIZE_MB = 80;
+
+        // Calculate current total size
+        const currentTotalSizeMB = getTotalSizeMB(mediaFiles);
+        let additionalSizeMB = 0;
 
         files.forEach(file => {
             // Validate file type
@@ -76,11 +87,21 @@ const AddProductModal = ({ isOpen, onClose, collectionId, onProductAdded, produc
                 return;
             }
 
-            // Validate file size (e.g., 50MB limit)
-            if (file.size > 50 * 1024 * 1024) {
-                setSnackbar({ show: true, message: `File ${file.name} is too large (max 50MB)`, type: 'error' });
-                return;
-            }
+            additionalSizeMB += file.size / (1024 * 1024);
+        });
+
+        if (currentTotalSizeMB + additionalSizeMB > MAX_TOTAL_SIZE_MB) {
+            setSnackbar({
+                show: true,
+                message: `Total media size cannot exceed ${MAX_TOTAL_SIZE_MB}MB. Current: ${currentTotalSizeMB.toFixed(1)}MB`,
+                type: 'error'
+            });
+            return;
+        }
+
+        files.forEach(file => {
+            // Check if it was a valid type (already checked above but for individual preview generation)
+            if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) return;
 
             newFiles.push(file);
             newPreviews.push({
@@ -184,27 +205,73 @@ const AddProductModal = ({ isOpen, onClose, collectionId, onProductAdded, produc
 
         setLoading(true);
         try {
-            // Create FormData
-            const formData = new FormData();
-            formData.append('name', name.trim());
-            // Join links with comma
-            formData.append('link', validLinks.join(','));
-            formData.append('desc', description.trim());
+            // 1. Compress image files (videos are kept as is)
+            const processedFiles = await Promise.all(
+                mediaFiles.map(async (file) => {
+                    if (file.type.startsWith('image/')) {
+                        return await compressImage(file);
+                    }
+                    return file;
+                })
+            );
 
-            // Append each file with 'media' key to support multiple files
-            // Some backends expect 'media[]', others just repeated 'media'
-            // Based on typical multer usage, repeated key works
-            mediaFiles.forEach(file => {
-                formData.append('media', file);
-            });
-
-            if (isEditMode) {
-                await ProductService.updateProduct(productToEdit._id, formData);
-                setSnackbar({ show: true, message: 'Product updated successfully!', type: 'success' });
-            } else {
-                await CollectionService.addProduct(collectionId, formData);
-                setSnackbar({ show: true, message: 'Product added successfully!', type: 'success' });
+            // 2. Final size check after compression
+            if (!isWithinSizeLimit(processedFiles, 80)) {
+                setSnackbar({
+                    show: true,
+                    message: `Total media size exceeds 80MB limit even after compression. Current: ${getTotalSizeMB(processedFiles).toFixed(1)}MB`,
+                    type: 'error'
+                });
+                setLoading(false);
+                return;
             }
+
+            let productId;
+            
+            // 3. Create or Update Product Details
+            if (isEditMode) {
+                // For updates, we send text details via updateProduct
+                // We use FormData to be safe, even if it's just text
+                const updateFormData = new FormData();
+                updateFormData.append('name', name.trim());
+                updateFormData.append('link', validLinks.join(','));
+                updateFormData.append('desc', description.trim());
+                
+                await ProductService.updateProduct(productToEdit._id, updateFormData);
+                productId = productToEdit._id;
+
+                // For new media in edit mode, use the specific media endpoint
+                if (processedFiles.length > 0) {
+                    const mediaFormData = new FormData();
+                    processedFiles.forEach(file => {
+                        mediaFormData.append('media', file);
+                    });
+                    await ProductService.addProductMedia(productId, mediaFormData);
+                }
+            } else {
+                // For NEW products, the creation endpoint /product/cId requires media
+                const createFormData = new FormData();
+                createFormData.append('name', name.trim());
+                createFormData.append('link', validLinks.join(','));
+                createFormData.append('desc', description.trim());
+                
+                // Append all media files to the creation request
+                processedFiles.forEach(file => {
+                    createFormData.append('media', file);
+                });
+
+                const createdProduct = await CollectionService.addProduct(collectionId, createFormData);
+                productId = createdProduct.result?._id || createdProduct._id;
+                
+                // Note: We've already uploaded the media in the creation call, 
+                // so we don't need to call addProductMedia again here.
+            }
+
+            setSnackbar({ 
+                show: true, 
+                message: isEditMode ? 'Product updated successfully!' : 'Product added successfully!', 
+                type: 'success' 
+            });
 
             setTimeout(() => {
                 resetForm();
@@ -213,8 +280,8 @@ const AddProductModal = ({ isOpen, onClose, collectionId, onProductAdded, produc
             }, 1000);
 
         } catch (error) {
-            console.error('Failed to add product:', error);
-            const errorMessage = error.response?.data?.message || 'Failed to add product. Please try again.';
+            console.error('Failed to process product:', error);
+            const errorMessage = error.response?.data?.message || 'Failed to save product. Please try again.';
             setSnackbar({ show: true, message: errorMessage, type: 'error' });
         } finally {
             setLoading(false);

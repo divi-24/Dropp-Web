@@ -96,6 +96,22 @@ class ProductService {
             throw error;
         }
     }
+
+    /**
+     * Add media to a product
+     * @param {string} id - Product ID
+     * @param {FormData} data - Media data
+     * @returns {Promise<Object>}
+     */
+    async addProductMedia(id, data) {
+        try {
+            const response = await ProductRepository.addProductMedia(id, data);
+            return response.updatedProduct || response;
+        } catch (error) {
+            console.error('ProductService.addProductMedia error:', error);
+            throw error;
+        }
+    }
 }
 
 export default new ProductService();

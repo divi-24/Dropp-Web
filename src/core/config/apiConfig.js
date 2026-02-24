@@ -24,6 +24,7 @@ export const API_CONFIG = {
         SEARCH_PRODUCTS: '/product/search', // GET /product/search?q={query}
         UPDATE_PRODUCT: '/product/pId', // PATCH /product/pId/{productId}
         PRODUCT_BY_PID: '/product/pId', // GET /product/pId/{productId}
+        PRODUCT_MEDIA: '/product/media/pId', // POST /product/media/pId/{productId}
     },
     TIMEOUT: 10000,
 };

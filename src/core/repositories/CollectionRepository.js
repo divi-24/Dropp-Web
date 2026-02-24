@@ -129,7 +129,7 @@ class CollectionRepository {
 
         const config = isFormData ? {
             headers: {
-                'Content-Type': 'multipart/form-data',
+                'Content-Type': undefined,
             }
         } : {};
 

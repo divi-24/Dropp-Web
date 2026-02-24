@@ -60,14 +60,35 @@ class ProductRepository {
     /**
      * Update a product
      * @param {string} id - Product ID
-     * @param {FormData} data - Product data (FormData for files)
+     * @param {FormData|Object} data - Product data
      * @returns {Promise<Object>}
      */
     async updateProduct(id, data) {
         // url: /product/pId/{productId}
-        const response = await apiClient.patch(`${API_CONFIG.ENDPOINTS.UPDATE_PRODUCT}/${id}`, data, {
+        const isFormData = data instanceof FormData;
+        const config = isFormData ? {
             headers: {
-                'Content-Type': 'multipart/form-data',
+                // Remove manual Content-Type to allow axios to set it with boundary
+                'Content-Type': undefined,
+            },
+        } : {};
+
+        const response = await apiClient.patch(`${API_CONFIG.ENDPOINTS.UPDATE_PRODUCT}/${id}`, data, config);
+        return response.data;
+    }
+
+    /**
+     * Add media to a product
+     * @param {string} id - Product ID
+     * @param {FormData} data - Media data (FormData with 'media' key)
+     * @returns {Promise<Object>}
+     */
+    async addProductMedia(id, data) {
+        // url: /product/media/pId/{productId}
+        const response = await apiClient.post(`${API_CONFIG.ENDPOINTS.PRODUCT_MEDIA}/${id}`, data, {
+            headers: {
+                // Remove manual Content-Type to allow axios to set it with boundary
+                'Content-Type': undefined,
             },
         });
         return response.data;

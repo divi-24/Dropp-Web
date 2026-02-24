@@ -99,13 +99,19 @@ const ProductCard = ({ product, onDelete }) => {
         }
     };
 
-    const getImageUrl = (url) => {
-        if (!url) return PLACEHOLDER_IMAGE;
+    const getImageUrl = (urlOrObj) => {
+        if (!urlOrObj) return PLACEHOLDER_IMAGE;
+        
+        // Handle if it's an object with a url property (from the new API response)
+        const url = typeof urlOrObj === 'object' ? urlOrObj.url : urlOrObj;
+        
+        if (!url || typeof url !== 'string') return PLACEHOLDER_IMAGE;
         if (url.startsWith('http')) return url;
         return API_CONFIG.BASE_URL + url;
     };
 
-    const displayImage = getImageUrl(product.image || product.imageUrl || (product.media && product.media[0]));
+    const firstMedia = Array.isArray(product.media) && product.media.length > 0 ? product.media[0] : null;
+    const displayImage = getImageUrl(product.image || product.imageUrl || firstMedia);
     const creatorImage = creator?.profileImageUrl ? getImageUrl(creator.profileImageUrl) : API_CONFIG.BASE_URL + '/images/default.webp';
 
     const handleEdit = (e) => {

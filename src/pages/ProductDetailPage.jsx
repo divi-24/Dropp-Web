@@ -175,8 +175,10 @@ const ProductDetailPage = () => {
         setSnackbar({ show: true, message: `@${creator?.username} has been blocked`, type: 'warning' });
     };
 
-    const mediaList = (product?.media || []).map(url => {
-        if (!url) return null;
+    const mediaList = (product?.media || []).map(item => {
+        if (!item) return null;
+        const url = typeof item === 'object' ? item.url : item;
+        if (!url || typeof url !== 'string') return null;
         if (url.startsWith('http')) return url;
         return API_CONFIG.BASE_URL + url;
     }).filter(Boolean);
@@ -192,8 +194,10 @@ const ProductDetailPage = () => {
         touchStartX.current = null;
     };
 
-    const getImageUrl = (url) => {
-        if (!url) return null;
+    const getImageUrl = (urlOrObj) => {
+        if (!urlOrObj) return null;
+        const url = typeof urlOrObj === 'object' ? urlOrObj.url : urlOrObj;
+        if (!url || typeof url !== 'string') return null;
         if (url.startsWith('http')) return url;
         return API_CONFIG.BASE_URL + url;
     };
