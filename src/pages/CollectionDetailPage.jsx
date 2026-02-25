@@ -255,7 +255,7 @@ const CollectionDetailPage = () => {
     };
 
     const getImageUrl = (url) => {
-        if (!url) return API_CONFIG.BASE_URL + '/images/default.webp';
+        if (!url) return null;
         if (url.startsWith('http')) return url;
         const cleanUrl = url.split('/').map(part => encodeURIComponent(part)).join('/');
         return API_CONFIG.BASE_URL + cleanUrl.replace(/%2F/g, '/');
@@ -447,12 +447,23 @@ const CollectionDetailPage = () => {
                                         onClick={() => creator?._id && navigate(`/user/${creator._id}`)}
                                         title={`View ${creatorName}'s profile`}
                                     >
-                                        <img
-                                            src={creatorAvatar}
-                                            alt={creatorName}
-                                            className="pdp-creator-avatar"
-                                            onError={(e) => { e.target.src = API_CONFIG.BASE_URL + '/images/default.webp'; }}
-                                        />
+                                        {creatorAvatar ? (
+                                            <img
+                                                src={creatorAvatar}
+                                                alt={creatorName}
+                                                className="pdp-creator-avatar"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                                                }}
+                                            />
+                                        ) : null}
+                                        <div
+                                            className="pdp-creator-avatar-placeholder"
+                                            style={{ display: creatorAvatar ? 'none' : 'flex' }}
+                                        >
+                                            {creatorName[0].toUpperCase()}
+                                        </div>
                                     </div>
 
                                     <div

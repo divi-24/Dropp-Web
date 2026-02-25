@@ -160,7 +160,7 @@ const Creators = () => {
     const creatorFollowsMe = () => false;
 
     const getImageUrl = (url) => {
-        if (!url) return API_CONFIG.BASE_URL + '/images/default.webp';
+        if (!url) return null;
         if (url.startsWith('http')) return url;
         return API_CONFIG.BASE_URL + url;
     };
@@ -224,12 +224,30 @@ const Creators = () => {
                                 transition={{ duration: 0.2 }}
                             >
                                 <div className="creator-card-left">
-                                    <img
-                                        src={getImageUrl(creator.profileImageUrl)}
-                                        alt={creator.fullName || creator.username}
-                                        className="creator-avatar"
-                                        onError={(e) => { e.target.src = API_CONFIG.BASE_URL + '/images/default.webp'; }}
-                                    />
+                                    <div className="creator-avatar-wrap" style={{ position: 'relative', width: '80px', height: '80px', flexShrink: 0 }}>
+                                        {getImageUrl(creator.profileImageUrl) ? (
+                                            <img
+                                                src={getImageUrl(creator.profileImageUrl)}
+                                                alt={creator.fullName || creator.username}
+                                                className="creator-avatar"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                                                }}
+                                            />
+                                        ) : null}
+                                        <div
+                                            className="creator-avatar-placeholder"
+                                            style={{
+                                                display: getImageUrl(creator.profileImageUrl) ? 'none' : 'flex',
+                                                width: '100%',
+                                                height: '100%',
+                                                fontSize: '24px'
+                                            }}
+                                        >
+                                            {(creator.fullName || creator.username || '?')[0].toUpperCase()}
+                                        </div>
+                                    </div>
                                     <div className="creator-info">
                                         <h3 className="creator-name">{creator.fullName || creator.username}</h3>
                                         <span className="creator-username">@{creator.username}</span>

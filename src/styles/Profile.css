@@ -850,6 +850,20 @@
     border-color: var(--accent-blue);
 }
 
+.board-creator-avatar-placeholder,
+.creator-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-gradient);
+    color: #fff;
+    border-radius: 50%;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid var(--border-color);
+    flex-shrink: 0;
+}
+
 .board-info {
     flex: 1;
     min-width: 0;

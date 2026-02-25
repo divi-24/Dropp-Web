@@ -145,7 +145,7 @@ const UserProfilePage = () => {
     };
 
     const getProfileImageUrl = () => {
-        if (!user?.profileImageUrl) return API_CONFIG.BASE_URL + '/images/default.webp';
+        if (!user?.profileImageUrl) return null;
         if (user.profileImageUrl.startsWith('http')) return user.profileImageUrl;
         return API_CONFIG.BASE_URL + user.profileImageUrl;
     };

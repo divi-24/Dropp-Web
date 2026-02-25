@@ -25,6 +25,22 @@ class ProductRepository {
     }
 
     /**
+     * Create a new product
+     * @param {string} collectionId - Collection ID
+     * @param {FormData} data - Product data (multipart/form-data)
+     * @returns {Promise<Object>}
+     */
+    async createProduct(collectionId, data) {
+        // url: /product/cId/{collectionId}
+        const response = await apiClient.post(`${API_CONFIG.ENDPOINTS.ADD_PRODUCT}/${collectionId}`, data, {
+            headers: {
+                'Content-Type': undefined, // Let axios set boundary
+            },
+        });
+        return response.data;
+    }
+
+    /**
      * Like/Unlike a product
      * @param {string} id - Product ID
      * @returns {Promise<Object>}
@@ -91,6 +107,18 @@ class ProductRepository {
                 'Content-Type': undefined,
             },
         });
+        return response.data;
+    }
+
+    /**
+     * Delete media from a product
+     * @param {string} productId - Product ID
+     * @param {string} mediaId - Media ID
+     * @returns {Promise<Object>}
+     */
+    async deleteProductMedia(productId, mediaId) {
+        // url: /product/media/{mediaId}/pId/{productId}/delete
+        const response = await apiClient.delete(`${API_CONFIG.ENDPOINTS.DELETE_PRODUCT_MEDIA}/${mediaId}/pId/${productId}/delete`);
         return response.data;
     }
 }

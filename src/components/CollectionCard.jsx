@@ -103,7 +103,7 @@ const CollectionCard = ({
     };
 
     const gridImages = getGridImages();
-    const creatorImage = creator?.profileImageUrl ? getImageUrl(creator.profileImageUrl) : API_CONFIG.BASE_URL + '/images/default.webp';
+    const creatorImage = creator?.profileImageUrl ? getImageUrl(creator.profileImageUrl) : null;
 
     // Close popups on outside click
     React.useEffect(() => {
@@ -205,13 +205,32 @@ const CollectionCard = ({
             {/* Board Info with Creator Avatar */}
             <div className="board-info-row">
                 {creator && (
-                    <img
-                        src={creatorImage}
-                        alt={creator.fullName || creator.username}
-                        className="board-creator-avatar"
-                        onClick={handleCreatorClick}
-                        onError={(e) => { e.target.src = API_CONFIG.BASE_URL + '/images/default.webp'; }}
-                    />
+                    <>
+                        {creatorImage ? (
+                            <img
+                                src={creatorImage}
+                                alt={creator.fullName || creator.username}
+                                className="board-creator-avatar"
+                                onClick={handleCreatorClick}
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                                }}
+                            />
+                        ) : null}
+                        <div
+                            className="board-creator-avatar-placeholder"
+                            style={{
+                                display: creatorImage ? 'none' : 'flex',
+                                width: '32px',
+                                height: '32px',
+                                fontSize: '14px'
+                            }}
+                            onClick={handleCreatorClick}
+                        >
+                            {(creator.fullName || creator.username || '?')[0].toUpperCase()}
+                        </div>
+                    </>
                 )}
                 <div className="board-info">
                     <h4 className="board-title">{collection.title}</h4>

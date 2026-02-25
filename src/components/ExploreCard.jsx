@@ -71,12 +71,30 @@ const ExploreCard = ({ collection }) => {
             {/* Creator Info */}
             {creator && (
                 <div className="explore-card-creator" onClick={handleCreatorClick}>
-                    <img
-                        src={creatorImage}
-                        alt={creator.fullName || creator.username}
-                        className="creator-avatar"
-                        onError={(e) => { e.target.src = API_CONFIG.BASE_URL + '/images/default.webp'; }}
-                    />
+                    <div className="creator-avatar-wrap" style={{ position: 'relative', width: '32px', height: '32px', flexShrink: 0 }}>
+                        {creatorImage ? (
+                            <img
+                                src={creatorImage}
+                                alt={creator.fullName || creator.username}
+                                className="creator-avatar"
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                                }}
+                            />
+                        ) : null}
+                        <div
+                            className="creator-avatar-placeholder"
+                            style={{
+                                display: creatorImage ? 'none' : 'flex',
+                                width: '100%',
+                                height: '100%',
+                                fontSize: '12px'
+                            }}
+                        >
+                            {(creator.fullName || creator.username || '?')[0].toUpperCase()}
+                        </div>
+                    </div>
                     <div className="creator-details">
                         <span className="creator-name">{creator.fullName || creator.username}</span>
                         <span className="creator-meta">

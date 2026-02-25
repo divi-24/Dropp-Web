@@ -104,14 +104,14 @@ const FollowListModal = ({ isOpen, onClose, userId, type, username }) => {
                                                         src={user.profileImageUrl.startsWith('http') ? user.profileImageUrl : `${API_CONFIG.BASE_URL}${user.profileImageUrl}`} 
                                                         alt={user.fullName} 
                                                         onError={(e) => {
-                                                            e.target.src = API_CONFIG.BASE_URL + '/images/default.webp';
+                                                            e.target.style.display = 'none';
+                                                            if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
                                                         }}
                                                     />
-                                                ) : (
-                                                    <div className="avatar-placeholder">
-                                                        {user.fullName?.charAt(0) || user.username?.charAt(0)}
-                                                    </div>
-                                                )}
+                                                ) : null}
+                                                <div className="avatar-placeholder" style={{ display: user.profileImageUrl ? 'none' : 'flex' }}>
+                                                    {user.fullName?.charAt(0) || user.username?.charAt(0)}
+                                                </div>
                                             </div>
                                             <div className="user-details">
                                                 <span className="username">{user.username}</span>

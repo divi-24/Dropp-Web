@@ -14,6 +14,7 @@ const AddProductModal = ({ isOpen, onClose, collectionId, onProductAdded, produc
     const [description, setDescription] = useState('');
     const [mediaFiles, setMediaFiles] = useState([]);
     const [mediaPreviews, setMediaPreviews] = useState([]);
+    const [removedMediaIds, setRemovedMediaIds] = useState([]);
     const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
     const [loading, setLoading] = useState(false);
     const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success' });
@@ -25,35 +26,25 @@ const AddProductModal = ({ isOpen, onClose, collectionId, onProductAdded, produc
         if (isOpen && productToEdit) {
             setName(productToEdit.name || productToEdit.title || '');
             setDescription(productToEdit.desc || productToEdit.description || '');
+            setRemovedMediaIds([]);
 
             // Handle links
             const productLinks = productToEdit.link ? productToEdit.link.split(',') : [''];
             setLinks(productLinks.length > 0 ? productLinks : ['']);
 
-            // Handle existing media
-            // Note: We cannot convert URLs back to File objects easily for re-upload without fetching them.
-            // For this implementation, we will show existing media as previews but they won't be in 'mediaFiles'.
-            // If user adds new files, they go to mediaFiles.
-            // A more complex implementation would separate existing vs new media.
-            // For simplicity, we will assume standard update where we just send new files or if we want to keep existing,
-            // the backend likely preserves them if not overwritten, OR we need to display them.
-
-            // Given the complexity of file inputs, let's just clear media for now or show existing if possible.
-            // If the prompt implies full edit capability including media, we might need a way to say "keep existing".
-            // However, HTML file input cannot be pre-populated.
-            // Let's populate previews from URL.
-
             const existingMedia = productToEdit.media || (productToEdit.image ? [productToEdit.image] : []) || [];
             if (existingMedia.length > 0) {
                 const previews = existingMedia.map(item => {
                     const url = typeof item === 'object' ? item.url : item;
+                    const id = typeof item === 'object' ? (item._id || item.id) : null;
                     const type = (typeof item === 'object' ? item.resourceType : (url.match(/\.(mp4|webm|ogg)$/i) ? 'video' : 'image')) || 'image';
                     
                     return {
                         url: url.startsWith('http') ? url : import.meta.env.VITE_API_BASE_URL + url,
                         type: type === 'video' || url.match(/\.(mp4|webm|ogg)$/i) ? 'video' : 'image',
                         name: 'Existing Media',
-                        isExisting: true
+                        isExisting: true,
+                        id: id
                     };
                 });
                 setMediaPreviews(previews);
@@ -131,19 +122,41 @@ const AddProductModal = ({ isOpen, onClose, collectionId, onProductAdded, produc
     };
 
     const removeMedia = (index) => {
-        setMediaFiles(prev => prev.filter((_, i) => i !== index));
+        const previewToRemove = mediaPreviews[index];
+        
+        if (previewToRemove.isExisting) {
+            if (previewToRemove.id) {
+                setRemovedMediaIds(prev => [...prev, previewToRemove.id]);
+            }
+        } else {
+            // It's a newly added file. We need to find its index in the mediaFiles array.
+            // Since mediaPreviews and mediaFiles were updated together:
+            // The index in mediaFiles = index - (count of existing items before this index)
+            const existingBefore = mediaPreviews.slice(0, index).filter(p => p.isExisting).length;
+            const fileIndex = index - existingBefore;
+            setMediaFiles(prev => prev.filter((_, i) => i !== fileIndex));
+        }
+
         setMediaPreviews(prev => {
-            // Revoke URL to avoid memory leaks
-            URL.revokeObjectURL(prev[index].url);
+            if (!previewToRemove.isExisting) {
+                URL.revokeObjectURL(previewToRemove.url);
+            }
             return prev.filter((_, i) => i !== index);
         });
+
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
     };
 
     const removeAllMedia = () => {
-        mediaPreviews.forEach(preview => URL.revokeObjectURL(preview.url));
+        mediaPreviews.forEach(preview => {
+            if (!preview.isExisting) {
+                URL.revokeObjectURL(preview.url);
+            } else if (preview.id) {
+                setRemovedMediaIds(prev => [...prev, preview.id]);
+            }
+        });
         setMediaFiles([]);
         setMediaPreviews([]);
         setCurrentMediaIndex(0);
@@ -230,26 +243,47 @@ const AddProductModal = ({ isOpen, onClose, collectionId, onProductAdded, produc
             
             // 3. Create or Update Product Details
             if (isEditMode) {
-                // For updates, we send text details via updateProduct
-                // We use FormData to be safe, even if it's just text
-                const updateFormData = new FormData();
-                updateFormData.append('name', name.trim());
-                updateFormData.append('link', validLinks.join(','));
-                updateFormData.append('desc', description.trim());
+                productId = productToEdit._id || productToEdit.id;
                 
-                await ProductService.updateProduct(productToEdit._id, updateFormData);
-                productId = productToEdit._id;
+                // --- HANDLE UPDATES ---
+                const promises = [];
 
-                // For new media in edit mode, use the specific media endpoint
+                // A. Check if details changed
+                const detailsChanged = name.trim() !== (productToEdit.name || productToEdit.title) ||
+                    validLinks.join(',') !== productToEdit.link ||
+                    description.trim() !== (productToEdit.desc || productToEdit.description);
+
+                if (detailsChanged) {
+                    const updateData = {
+                        name: name.trim(),
+                        link: validLinks.join(','),
+                        desc: description.trim()
+                    };
+                    promises.push(ProductService.updateProduct(productId, updateData));
+                }
+
+                // B. Handle Media Deletions
+                if (removedMediaIds.length > 0) {
+                    removedMediaIds.forEach(mediaId => {
+                        promises.push(ProductService.deleteProductMedia(productId, mediaId));
+                    });
+                }
+
+                // C. Handle New Media Additions
                 if (processedFiles.length > 0) {
                     const mediaFormData = new FormData();
                     processedFiles.forEach(file => {
                         mediaFormData.append('media', file);
                     });
-                    await ProductService.addProductMedia(productId, mediaFormData);
+                    promises.push(ProductService.addProductMedia(productId, mediaFormData));
+                }
+
+                if (promises.length > 0) {
+                    await Promise.all(promises);
                 }
             } else {
-                // For NEW products, the creation endpoint /product/cId requires media
+                // --- HANDLE CREATION ---
+                // For NEW products, call create product API with media in the body as multipart/form-data
                 const createFormData = new FormData();
                 createFormData.append('name', name.trim());
                 createFormData.append('link', validLinks.join(','));
@@ -262,9 +296,6 @@ const AddProductModal = ({ isOpen, onClose, collectionId, onProductAdded, produc
 
                 const createdProduct = await CollectionService.addProduct(collectionId, createFormData);
                 productId = createdProduct.result?._id || createdProduct._id;
-                
-                // Note: We've already uploaded the media in the creation call, 
-                // so we don't need to call addProductMedia again here.
             }
 
             setSnackbar({ 

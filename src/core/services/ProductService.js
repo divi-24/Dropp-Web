@@ -39,6 +39,22 @@ class ProductService {
     }
 
     /**
+     * Create a new product
+     * @param {string} collectionId - Collection ID
+     * @param {FormData} data - Product data
+     * @returns {Promise<Object>}
+     */
+    async createProduct(collectionId, data) {
+        try {
+            const response = await ProductRepository.createProduct(collectionId, data);
+            return response.result || response;
+        } catch (error) {
+            console.error('ProductService.createProduct error:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Like/Unlike a product
      * @param {string} id - Product ID
      * @returns {Promise<Object>}
@@ -109,6 +125,21 @@ class ProductService {
             return response.updatedProduct || response;
         } catch (error) {
             console.error('ProductService.addProductMedia error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Delete a media from product
+     * @param {string} productId - Product ID
+     * @param {string} mediaId - Media ID
+     * @returns {Promise<Object>}
+     */
+    async deleteProductMedia(productId, mediaId) {
+        try {
+            return await ProductRepository.deleteProductMedia(productId, mediaId);
+        } catch (error) {
+            console.error('ProductService.deleteProductMedia error:', error);
             throw error;
         }
     }

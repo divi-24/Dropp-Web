@@ -112,7 +112,7 @@ const ProductCard = ({ product, onDelete }) => {
 
     const firstMedia = Array.isArray(product.media) && product.media.length > 0 ? product.media[0] : null;
     const displayImage = getImageUrl(product.image || product.imageUrl || firstMedia);
-    const creatorImage = creator?.profileImageUrl ? getImageUrl(creator.profileImageUrl) : API_CONFIG.BASE_URL + '/images/default.webp';
+    const creatorImage = creator?.profileImageUrl ? getImageUrl(creator.profileImageUrl) : null;
 
     const handleEdit = (e) => {
         e.stopPropagation();
@@ -222,13 +222,32 @@ const ProductCard = ({ product, onDelete }) => {
                 {/* Board Info with Creator Avatar */}
                 <div className="board-info-row">
                     {creator && typeof creator === 'object' && (
-                        <img
-                            src={creatorImage}
-                            alt={creator.fullName || creator.username}
-                            className="board-creator-avatar"
-                            onClick={handleCreatorClick}
-                            onError={(e) => { e.target.src = API_CONFIG.BASE_URL + '/images/default.webp'; }}
-                        />
+                        <>
+                            {creatorImage ? (
+                                <img
+                                    src={creatorImage}
+                                    alt={creator.fullName || creator.username}
+                                    className="board-creator-avatar"
+                                    onClick={handleCreatorClick}
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                                    }}
+                                />
+                            ) : null}
+                            <div
+                                className="board-creator-avatar-placeholder"
+                                style={{
+                                    display: creatorImage ? 'none' : 'flex',
+                                    width: '32px',
+                                    height: '32px',
+                                    fontSize: '14px'
+                                }}
+                                onClick={handleCreatorClick}
+                            >
+                                {(creator.fullName || creator.username || '?')[0].toUpperCase()}
+                            </div>
+                        </>
                     )}
                     <div className="board-info">
                         <h4 className="board-title">{product.name || product.title}</h4>

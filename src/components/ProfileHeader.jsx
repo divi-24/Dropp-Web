@@ -55,10 +55,29 @@ const ProfileHeader = ({
                         style={onAvatarClick ? { cursor: 'pointer' } : {}}
                     >
                         {avatar ? (
-                            <img src={avatar} alt={fullName} />
-                        ) : (
+                            <img
+                                src={avatar}
+                                alt={fullName}
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                                }}
+                            />
+                        ) : null}
+                        <div
+                            className="profile-avatar-placeholder"
+                            style={{
+                                display: avatar ? 'none' : 'flex',
+                                width: '100%',
+                                height: '100%',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'var(--bg-secondary)',
+                                color: 'var(--text-secondary)'
+                            }}
+                        >
                             <User size={48} />
-                        )}
+                        </div>
                     </div>
                 </div>
 
