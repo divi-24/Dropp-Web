@@ -70,7 +70,6 @@ const Profile = () => {
                 }
             } catch (err) {
                 console.error("Failed to fetch profile data:", err);
-                // Show specific error message
                 const errorMessage = err.response?.data?.message || err.message || "Failed to load profile data.";
                 setError(errorMessage);
             } finally {
