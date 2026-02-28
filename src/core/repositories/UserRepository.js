@@ -177,6 +177,22 @@ class UserRepository {
         }
     }
 
+    async markNotificationRead(id) {
+        try {
+            await apiClient.patch(`${API_CONFIG.ENDPOINTS.MARK_NOTIFICATION_READ}/${id}`);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async markAllNotificationsRead() {
+        try {
+            await apiClient.patch(API_CONFIG.ENDPOINTS.MARK_ALL_NOTIFICATIONS_READ);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     /**
      * Get all users (creators)
      * @returns {Promise<Array>}

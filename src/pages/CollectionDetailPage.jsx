@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ArrowLeft,
@@ -16,8 +16,7 @@ import {
     Calendar,
     Flag,
     UserX,
-    Check,
-    ExternalLink
+    Check
 } from 'lucide-react';
 import CollectionService from '../core/services/CollectionService';
 import UserService from '../core/services/UserService';
@@ -167,12 +166,12 @@ const CollectionDetailPage = () => {
     }, [id]);
 
     const handleShare = () => {
-        const url = window.location.href;
+        const url = `${window.location.origin}/c/${id}`;
         if (navigator.share) {
             navigator.share({
                 title: collection?.title || collection?.name,
                 text: collection?.desc,
-                url: url,
+                url,
             }).catch(err => console.log('Error sharing:', err));
         } else {
             navigator.clipboard.writeText(url);
@@ -276,9 +275,36 @@ const CollectionDetailPage = () => {
         fetchProducts();
     };
 
+    if (!isAuthenticated) {
+        return (
+            <>
+                <div className="pdp-auth-gate-page">
+                    <div className="pdp-auth-gate">
+                        <div className="pdp-auth-gate-icon">
+                            <Package size={36} strokeWidth={1.2} />
+                        </div>
+                        <h2 className="pdp-auth-gate-title">Sign in to view this collection</h2>
+                        <p className="pdp-auth-gate-sub">
+                            Create an account or sign in to explore curated collections and products from creators on Dropp.
+                        </p>
+                        <div className="pdp-auth-gate-btns">
+                            <button className="pdp-auth-gate-primary" onClick={() => navigate('/signup')}>
+                                Create Account
+                            </button>
+                            <button className="pdp-auth-gate-secondary" onClick={() => navigate('/login')}>
+                                Sign In
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <Footer />
+            </>
+        );
+    }
+
     if (loading) {
         return (
-            <div className={`collection-detail-page ${!isAuthenticated ? 'public-view' : ''}`}>
+            <div className="collection-detail-page">
                 <div className="collection-detail-container">
                     <ShimmerCollectionDetail />
                 </div>
@@ -309,7 +335,7 @@ const CollectionDetailPage = () => {
     return (
         <>
             <motion.div
-                className={`collection-detail-page ${!isAuthenticated ? 'public-view' : ''}`}
+                className="collection-detail-page"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -552,23 +578,6 @@ const CollectionDetailPage = () => {
                         </div>
                     </div>
 
-                    {!isAuthenticated && (
-                        <div className="public-cta-section">
-                            <div className="cta-content">
-                                <UserPlus size={32} />
-                                <h3>Discover More Collections</h3>
-                                <p>Create an account to explore curated collections from your favorite creators</p>
-                                <div className="cta-buttons">
-                                    <Link to="/signup" className="cta-btn primary">
-                                        Create Account
-                                    </Link>
-                                    <Link to="/login" className="cta-btn secondary">
-                                        Sign In
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 {isOwner && (

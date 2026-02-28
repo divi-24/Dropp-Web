@@ -160,6 +160,22 @@ class UserService {
         }
     }
 
+    async markNotificationRead(id) {
+        try {
+            return await UserRepository.markNotificationRead(id);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async markAllNotificationsRead() {
+        try {
+            return await UserRepository.markAllNotificationsRead();
+        } catch (error) {
+            throw error;
+        }
+    }
+
     /**
      * Get all users (creators)
      * @returns {Promise<Array>}

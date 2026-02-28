@@ -35,7 +35,7 @@ export const NotificationProvider = ({ children }) => {
             setNotifications([]);
             setUnreadCount(0);
         }
-    }, [isAuthenticated, fetchNotifications]);
+    }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (isAuthenticated && token) {
@@ -71,17 +71,27 @@ export const NotificationProvider = ({ children }) => {
         }
     }, [isAuthenticated, token]);
 
-    const markAsRead = (id) => {
-        setNotifications(prev => prev.map(n => 
-            n._id === id ? { ...n, hasRead: true } : n
+    const markAsRead = useCallback(async (id) => {
+        setNotifications(prev => prev.map(n =>
+            (n._id === id || n.id === id) ? { ...n, hasRead: true } : n
         ));
         setUnreadCount(prev => Math.max(0, prev - 1));
-    };
+        try {
+            await UserService.markNotificationRead(id);
+        } catch (error) {
+            console.error('Failed to mark notification as read:', error);
+        }
+    }, []);
 
-    const markAllAsRead = () => {
+    const markAllAsRead = useCallback(async () => {
         setNotifications(prev => prev.map(n => ({ ...n, hasRead: true })));
         setUnreadCount(0);
-    };
+        try {
+            await UserService.markAllNotificationsRead();
+        } catch (error) {
+            console.error('Failed to mark all notifications as read:', error);
+        }
+    }, []);
 
     const value = {
         notifications,

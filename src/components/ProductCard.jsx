@@ -75,7 +75,7 @@ const ProductCard = ({ product, onDelete }) => {
 
     const handleCopyLink = (e) => {
         e.stopPropagation();
-        const url = product.link || window.location.href;
+        const url = `${window.location.origin}/product/${productId}`;
         navigator.clipboard.writeText(url);
         setCopied(true);
         setTimeout(() => {
@@ -206,7 +206,7 @@ const ProductCard = ({ product, onDelete }) => {
                             <input
                                 type="text"
                                 readOnly
-                                value={product.link || window.location.href}
+                                value={`${window.location.origin}/product/${productId}`}
                                 className="share-link-input"
                             />
                             <button

@@ -56,8 +56,7 @@ const CollectionCard = ({
 
     const handleCopyLink = (e) => {
         e.stopPropagation();
-        const basePath = import.meta.env.BASE_URL || '/';
-        const url = `${window.location.origin}${basePath}#/c/${collectionId}`;
+        const url = `${window.location.origin}/c/${collectionId}`;
         navigator.clipboard.writeText(url);
         setCopied(true);
         setTimeout(() => {
@@ -189,7 +188,7 @@ const CollectionCard = ({
                         <input
                             type="text"
                             readOnly
-                            value={`${window.location.origin}${import.meta.env.BASE_URL || '/'}#/c/${collectionId}`}
+                            value={`${window.location.origin}/c/${collectionId}`}
                             className="share-link-input"
                         />
                         <button

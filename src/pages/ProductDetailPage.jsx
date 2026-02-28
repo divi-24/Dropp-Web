@@ -46,8 +46,8 @@ const ProductDetailPage = () => {
         ((creator._id || creator.id) === currentUserId);
 
     useEffect(() => {
-        fetchProductData();
-    }, [id]);
+        if (isAuthenticated) fetchProductData();
+    }, [id, isAuthenticated]);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -154,7 +154,7 @@ const ProductDetailPage = () => {
     };
 
     const handleShare = () => {
-        const url = product?.link || window.location.href;
+        const url = `${window.location.origin}/product/${id}`;
         if (navigator.share) {
             navigator.share({ title: product?.name, text: product?.desc, url }).catch(() => {});
         } else {
@@ -216,6 +216,33 @@ const ProductDetailPage = () => {
         return count.toString();
     };
 
+    if (!isAuthenticated) {
+        return (
+            <>
+                <div className="pdp-auth-gate-page">
+                    <div className="pdp-auth-gate">
+                        <div className="pdp-auth-gate-icon">
+                            <Package size={36} strokeWidth={1.2} />
+                        </div>
+                        <h2 className="pdp-auth-gate-title">Sign in to view this product</h2>
+                        <p className="pdp-auth-gate-sub">
+                            Create an account or sign in to explore curated products and collections from creators on Dropp.
+                        </p>
+                        <div className="pdp-auth-gate-btns">
+                            <button className="pdp-auth-gate-primary" onClick={() => navigate('/signup')}>
+                                Create Account
+                            </button>
+                            <button className="pdp-auth-gate-secondary" onClick={() => navigate('/login')}>
+                                Sign In
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <Footer />
+            </>
+        );
+    }
+
     if (loading) {
         return (
             <div className="pdp-page">
@@ -262,6 +289,9 @@ const ProductDetailPage = () => {
     const productName = product.name || product.title || 'Untitled Product';
     const productDesc = product.desc || product.description;
     const productLink = product.link;
+    const productLinks = productLink
+        ? productLink.split(',').map(l => l.trim()).filter(Boolean)
+        : [];
     const creatorName = creator?.fullName || creator?.username || 'Unknown Creator';
     const creatorUsername = creator?.username;
     const creatorAvatar = creator?.profileImageUrl ? getImageUrl(creator.profileImageUrl) : null;
@@ -391,9 +421,9 @@ const ProductDetailPage = () => {
                                             {copied ? 'Copied!' : 'Share'}
                                         </button>
 
-                                        {productLink && (
+                                        {productLinks.length > 0 && (
                                             <a
-                                                href={productLink}
+                                                href={productLinks[0]}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="pdp-action-btn pdp-visit-btn"
@@ -404,12 +434,25 @@ const ProductDetailPage = () => {
                                         )}
                                     </div>
 
-                                    {productLink && (
-                                        <div className="pdp-link-card">
-                                            <Link2 size={15} />
-                                            <a href={productLink} target="_blank" rel="noopener noreferrer">
-                                                {productLink}
-                                            </a>
+                                    {productLinks.length > 0 && (
+                                        <div className="pdp-links-list">
+                                            {productLinks.map((link, i) => {
+                                                let label = link;
+                                                try { label = new URL(link).hostname.replace('www.', ''); } catch {}
+                                                return (
+                                                    <a
+                                                        key={i}
+                                                        href={link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="pdp-link-card"
+                                                    >
+                                                        <Link2 size={15} />
+                                                        <span className="pdp-link-label">{label}</span>
+                                                        <ExternalLink size={13} className="pdp-link-external" />
+                                                    </a>
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </div>

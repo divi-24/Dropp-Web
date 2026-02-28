@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, UserPlus, Bell as BellIcon, Check, Package, BookOpen, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../contexts/NotificationContext';
-import { useAuth } from '../contexts/AuthContext';
-import UserService from '../core/services/UserService';
 import '../styles/Notifications.css';
 
 const formatTime = (dateString) => {
@@ -24,15 +22,15 @@ export const getNotificationMessage = (notification) => {
         case 'follow':
             return `${username || 'Someone'} started following you`;
         case 'product_like':
-            return entityName ? `Someone liked your product ${entityName}` : 'Someone liked your product';
+            return entityName ? `${username} liked your product ${entityName}` : 'Someone liked your product';
         case 'collection_like':
-            return entityName ? `Someone liked your collection ${entityName}` : 'Someone liked your collection';
+            return entityName ? `${username} liked your collection ${entityName}` : 'Someone liked your collection';
         default:
             return 'New notification';
     }
 };
 
-const getTypeConfig = (type, entityModel) => {
+const getTypeConfig = (type) => {
     switch (type) {
         case 'follow':
             return {
@@ -88,34 +86,24 @@ const getNavigationPath = (notification) => {
 
 // ─── Notification Item ────────────────────────────────────────────────────────
 
-const NotificationItem = ({ notification, index, followingIds, senderProfile }) => {
+const NotificationItem = ({ notification, index }) => {
     const navigate = useNavigate();
     const isFollow = notification.type === 'follow';
 
-    const [followed, setFollowed] = useState(() => followingIds.has(notification.sender));
-    const [followLoading, setFollowLoading] = useState(false);
     const [imgError, setImgError] = useState(false);
 
-    useEffect(() => {
-        if (followingIds.has(notification.sender)) setFollowed(true);
-    }, [followingIds, notification.sender]);
-
-    const config = getTypeConfig(notification.type, notification.entityModel);
+    const config = getTypeConfig(notification.type);
     const path = getNavigationPath(notification);
 
-    // Username: from entitySnapshot for follow, from fetched senderProfile for likes
-    const senderUsername = notification.entitySnapshot?.username || senderProfile?.username;
-    // product_like uses `name`, collection_like uses `title`
+    const senderUsername = notification.entitySnapshot?.username;
     const entityName = notification.entitySnapshot?.name || notification.entitySnapshot?.title;
-    const profileImageUrl = senderProfile?.profileImageUrl;
+    const profileImageUrl = notification.entitySnapshot?.profileImageUrl;
     const showProfileImage = profileImageUrl && !imgError;
 
-    // Avatar: show profile image if available, else letter from username, else entity icon
-    const avatarLetter = isFollow
-        ? (senderUsername?.[0]?.toUpperCase() || '?')
-        : (senderUsername?.[0]?.toUpperCase() || entityName?.[0]?.toUpperCase() || '?');
+    const avatarLetter = senderUsername?.[0]?.toUpperCase()
+        || entityName?.[0]?.toUpperCase()
+        || '?';
 
-    // Message lines
     const line1 = (() => {
         switch (notification.type) {
             case 'follow':
@@ -145,20 +133,6 @@ const NotificationItem = ({ notification, index, followingIds, senderProfile }) 
     })();
 
     const handleClick = () => { if (path) navigate(path); };
-
-    const handleFollowBack = async (e) => {
-        e.stopPropagation();
-        if (followLoading || followed) return;
-        setFollowLoading(true);
-        try {
-            await UserService.followUser(notification.sender);
-            setFollowed(true);
-        } catch (err) {
-            console.error('Follow back failed:', err);
-        } finally {
-            setFollowLoading(false);
-        }
-    };
 
     return (
         <motion.div
@@ -202,21 +176,13 @@ const NotificationItem = ({ notification, index, followingIds, senderProfile }) 
             </div>
 
             {/* ── Right action ── */}
-            <div className="notif-action" onClick={e => e.stopPropagation()}>
-                {isFollow ? (
-                    <button
-                        className={`follow-back-btn ${followed ? 'followed' : ''}`}
-                        onClick={handleFollowBack}
-                        disabled={followLoading || followed}
-                    >
-                        {followed ? 'Following' : followLoading ? '…' : 'Follow back'}
-                    </button>
-                ) : path ? (
+            {path && (
+                <div className="notif-action" onClick={e => e.stopPropagation()}>
                     <div className="notif-arrow" onClick={handleClick}>
                         <ArrowRight size={15} strokeWidth={2} />
                     </div>
-                ) : null}
-            </div>
+                </div>
+            )}
 
             {!notification.hasRead && <span className="notif-dot" />}
         </motion.div>
@@ -227,45 +193,19 @@ const NotificationItem = ({ notification, index, followingIds, senderProfile }) 
 
 const Notifications = () => {
     const [filter, setFilter] = useState('all');
-    const { notifications, unreadCount, markAllAsRead, fetchNotifications } = useNotifications();
-    const { user: currentUser } = useAuth();
+    const { notifications, unreadCount, markAllAsRead } = useNotifications();
+    const hasMarkedRef = useRef(false);
 
-    // Map of senderId → profile data (for avatar images + usernames on likes)
-    const [senderProfiles, setSenderProfiles] = useState({});
-    // Set of user IDs the current user is following (for Follow-back state)
-    const [followingIds, setFollowingIds] = useState(new Set());
 
-    useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
-
-    // Batch-fetch all unique sender profiles once notifications load
+    // Auto-mark all as read 2 seconds after page opens
     useEffect(() => {
+        if (hasMarkedRef.current) return;
         if (notifications.length === 0) return;
-        const uniqueIds = [...new Set(notifications.map(n => n.sender).filter(Boolean))];
-        Promise.all(
-            uniqueIds.map(id =>
-                UserService.getUserById(id)
-                    .then(data => ({ id, data }))
-                    .catch(() => ({ id, data: null }))
-            )
-        ).then(results => {
-            const map = {};
-            results.forEach(({ id, data }) => { if (data) map[id] = data; });
-            setSenderProfiles(map);
-        });
-    }, [notifications]);
-
-    // Fetch following list once for Follow-back button state
-    useEffect(() => {
-        const userId = currentUser?._id || currentUser?.id;
-        if (!userId) return;
-        if (!notifications.some(n => n.type === 'follow')) return;
-        UserService.getFollowing(userId)
-            .then(following => {
-                const ids = new Set(following.map(u => u._id || u.id).filter(Boolean));
-                setFollowingIds(ids);
-            })
-            .catch(() => {});
-    }, [notifications, currentUser]);
+        if (unreadCount === 0) return;
+        hasMarkedRef.current = true;
+        const timer = setTimeout(() => { markAllAsRead(); }, 2000);
+        return () => clearTimeout(timer);
+    }, [notifications, unreadCount, markAllAsRead]);
 
     const filteredNotifications = filter === 'all'
         ? notifications
@@ -322,8 +262,6 @@ const Notifications = () => {
                                     key={notification._id || notification.id}
                                     notification={notification}
                                     index={index}
-                                    followingIds={followingIds}
-                                    senderProfile={senderProfiles[notification.sender] || null}
                                 />
                             ))
                         )}
