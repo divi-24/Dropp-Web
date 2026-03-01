@@ -31,6 +31,8 @@ export const API_CONFIG = {
         PRODUCT_BY_PID: '/product/pId', // GET /product/pId/{productId}
         PRODUCT_MEDIA: '/product/media/pId', // POST /product/media/pId/{productId}
         DELETE_PRODUCT_MEDIA: '/product/media', // DELETE /product/media/{mediaId}/pId/{productId}/delete
+        INVITE_MEMBER: '/c/invite', // PATCH /c/invite/{collectionId}
+        REVOKE_MEMBER: '/c/revokeMember', // DELETE /c/revokeMember/{collectionId} body: { memberId }
     },
     TIMEOUT: 10000,
 };

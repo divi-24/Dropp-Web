@@ -227,6 +227,24 @@ class CollectionService {
             throw error;
         }
     }
+
+    async inviteMember(collectionId, userId, role) {
+        try {
+            return await CollectionRepository.inviteMember(collectionId, userId, role);
+        } catch (error) {
+            console.error('CollectionService.inviteMember error:', error);
+            throw error;
+        }
+    }
+
+    async revokeMember(userId, collectionId) {
+        try {
+            return await CollectionRepository.revokeMember(userId, collectionId);
+        } catch (error) {
+            console.error('CollectionService.revokeMember error:', error);
+            throw error;
+        }
+    }
 }
 
 export default new CollectionService();

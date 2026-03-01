@@ -18,12 +18,15 @@ import {
     UserX,
     Check,
     Lock,
-    Globe
+    Globe,
+    Users,
+    LogOut
 } from 'lucide-react';
 import CollectionService from '../core/services/CollectionService';
 import UserService from '../core/services/UserService';
 import EditCollectionModal from '../components/EditCollectionModal';
 import AddProductModal from '../components/AddProductModal';
+import InviteMemberModal from '../components/InviteMemberModal';
 import ProductCard from '../components/ProductCard';
 import Snackbar from '../components/Snackbar';
 import Footer from '../components/Footer';
@@ -45,7 +48,7 @@ const CollectionDetailPage = () => {
     const [showOptions, setShowOptions] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
-    const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success' });
+    const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success', action: null });
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
     const [products, setProducts] = useState([]);
@@ -56,16 +59,24 @@ const CollectionDetailPage = () => {
     const [followModal, setFollowModal] = useState({ isOpen: false, type: 'followers' });
     const [copied, setCopied] = useState(false);
     const [visibilityLoading, setVisibilityLoading] = useState(false);
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+    const [exitLoading, setExitLoading] = useState(null); // 'main' | 'members' | null
 
     const optionsRef = useRef(null);
 
     // Get creator info
     const [creator, setCreator] = useState(null);
 
-    // Determine if current user is the owner
+    // Determine if current user is the owner or a member
     const currentUserId = user?.id || user?._id;
     const collectionOwnerId = collection?.createdBy?._id || collection?.createdBy?.id || creator?._id || creator?.id;
     const isOwner = isAuthenticated && currentUserId && collectionOwnerId && (currentUserId === collectionOwnerId);
+    // members is [{user: "id", role, _id}] — check if current user is in the list
+    const isMember = !isOwner && isAuthenticated && currentUserId &&
+        collection?.members?.some(m => m.user === currentUserId || m.user?._id === currentUserId);
+    const isEditor = isMember &&
+        collection?.members?.some(m => (m.user === currentUserId || m.user?._id === currentUserId) && m.role === 'editor');
+    const canAddProducts = isOwner || isEditor;
 
     useEffect(() => {
         fetchCollection();
@@ -276,6 +287,40 @@ const CollectionDetailPage = () => {
         setSnackbar({ show: true, message: `@${creator?.username} has been blocked`, type: 'warning' });
     };
 
+    const doExitCollection = async (source) => {
+        setExitLoading(source);
+        setSnackbar({ show: false, message: '', type: 'success', action: null });
+        try {
+            await CollectionService.revokeMember(currentUserId, id);
+            setSnackbar({ show: true, message: 'You have left the collection', type: 'success', action: null });
+            setTimeout(() => navigate(-1), 1000);
+        } catch (error) {
+            console.error('Failed to exit collection:', error);
+            setSnackbar({ show: true, message: 'Failed to exit collection', type: 'error', action: null });
+        } finally {
+            setExitLoading(null);
+        }
+    };
+
+    const handleExitClick = (source) => {
+        setSnackbar({
+            show: true,
+            message: 'Are you sure you want to exit this collection?',
+            type: 'warning',
+            action: { label: 'Confirm Exit', onClick: () => doExitCollection(source) }
+        });
+    };
+
+    const handleMemberRemoved = (removedUserId) => {
+        setCollection(prev => ({
+            ...prev,
+            members: prev.members?.filter(m => (m.user || m) !== removedUserId) ?? []
+        }));
+        if (removedUserId === currentUserId) {
+            navigate(-1);
+        }
+    };
+
     const getImageUrl = (url) => {
         if (!url) return null;
         if (url.startsWith('http')) return url;
@@ -382,6 +427,7 @@ const CollectionDetailPage = () => {
                                             <ProductCard
                                                 key={product._id || product.id}
                                                 product={product}
+                                                isCollectionOwner={isOwner}
                                                 onDelete={(deletedId) => {
                                                     setProducts(prev => prev.filter(p => (p._id || p.id) !== deletedId));
                                                 }}
@@ -395,12 +441,12 @@ const CollectionDetailPage = () => {
                                         </div>
                                         <h4 className="empty-products-title">No products yet</h4>
                                         <p className="empty-products-text">
-                                            {isOwner
-                                                ? 'Start adding products to your collection to share with others.'
+                                            {canAddProducts
+                                                ? 'Start adding products to this collection.'
                                                 : 'This collection doesn\'t have any products yet.'
                                             }
                                         </p>
-                                        {isOwner && (
+                                        {canAddProducts && (
                                             <button
                                                 className="add-products-btn"
                                                 onClick={handleAddProducts}
@@ -443,6 +489,12 @@ const CollectionDetailPage = () => {
                                         <div className="side-stat">
                                             <Calendar size={14} />
                                             <span>{new Date(collection.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                                        </div>
+                                    )}
+                                    {collection.isPrivate && collection.members?.length > 0 && (
+                                        <div className="side-stat side-stat-clickable" onClick={() => setIsInviteModalOpen(true)}>
+                                            <Users size={14} />
+                                            <span>{collection.members.length} {collection.members.length === 1 ? 'member' : 'members'}</span>
                                         </div>
                                     )}
                                 </div>
@@ -510,7 +562,7 @@ const CollectionDetailPage = () => {
                                     </div>
                                 )}
 
-                                {isOwner && (
+                                {canAddProducts && (
                                     <button
                                         className="pdp-action-btn pdp-visit-btn full-width"
                                         onClick={handleAddProducts}
@@ -520,7 +572,81 @@ const CollectionDetailPage = () => {
                                         Add Products
                                     </button>
                                 )}
+
+                                {/* Invite button — owner of private collection */}
+                                {isOwner && collection.isPrivate && (
+                                    <button
+                                        className="pdp-action-btn full-width collection-invite-btn"
+                                        onClick={() => setIsInviteModalOpen(true)}
+                                        style={{ marginTop: '0.5rem' }}
+                                    >
+                                        <Users size={16} />
+                                        Manage Members
+                                        {collection.members?.length > 0 && (
+                                            <span className="collection-member-count">{collection.members.length}</span>
+                                        )}
+                                    </button>
+                                )}
+
+                                {/* Exit button — member (non-owner) of private collection */}
+                                {isMember && collection.isPrivate && (
+                                    <button
+                                        className="pdp-action-btn full-width collection-exit-btn"
+                                        onClick={() => handleExitClick('main')}
+                                        disabled={exitLoading === 'main'}
+                                        style={{ marginTop: '0.5rem' }}
+                                    >
+                                        <LogOut size={16} />
+                                        {exitLoading === 'main' ? 'Leaving…' : 'Exit Collection'}
+                                    </button>
+                                )}
                             </div>
+
+                            {/* ── Members Preview (private collections with members) ── */}
+                            {collection.isPrivate && collection.members?.length > 0 && (
+                                <div className="collection-members-card">
+                                    <div className="collection-members-header">
+                                        <Users size={15} />
+                                        <span>Members</span>
+                                        <span className="collection-member-count">{collection.members.length}</span>
+                                    </div>
+                                    {/* <div className="collection-members-avatars">
+                                        {collection.members.slice(0, 5).map((m, i) => (
+                                            <div
+                                                key={m._id || m.user}
+                                                className="collection-member-avatar-slot"
+                                                style={{ zIndex: 5 - i }}
+                                                title={m.role || 'member'}
+                                            >
+                                                <User size={14} strokeWidth={1.8} />
+                                            </div>
+                                        ))}
+                                        {collection.members.length > 5 && (
+                                            <div className="collection-member-avatar-slot collection-member-more">
+                                                +{collection.members.length - 5}
+                                            </div>
+                                        )}
+                                    </div> */}
+                                    {isOwner && (
+                                        <button
+                                            className="collection-members-manage-btn"
+                                            onClick={() => setIsInviteModalOpen(true)}
+                                        >
+                                            Manage
+                                        </button>
+                                    )}
+                                    {isMember && (
+                                        <button
+                                            className="collection-members-manage-btn collection-members-exit-btn"
+                                            onClick={() => handleExitClick('members')}
+                                            disabled={exitLoading === 'members'}
+                                        >
+                                            <LogOut size={13} />
+                                            {exitLoading === 'members' ? 'Leaving…' : 'Exit'}
+                                        </button>
+                                    )}
+                                </div>
+                            )}
 
                             {/* IDENTICAL CREATOR PANEL */}
                             {creator ? (
@@ -646,7 +772,20 @@ const CollectionDetailPage = () => {
                     />
                 )}
 
-                {isOwner && (
+                {collection.isPrivate && (isOwner || isMember) && (
+                    <InviteMemberModal
+                        isOpen={isInviteModalOpen}
+                        onClose={() => setIsInviteModalOpen(false)}
+                        collectionId={id}
+                        members={collection.members || []}
+                        isOwner={isOwner}
+                        currentUserId={currentUserId}
+                        onMemberRemoved={handleMemberRemoved}
+                        onInviteSent={() => setSnackbar({ show: true, message: 'Invite sent!', type: 'success' })}
+                    />
+                )}
+
+                {canAddProducts && (
                     <AddProductModal
                         isOpen={isAddProductModalOpen}
                         onClose={() => setIsAddProductModalOpen(false)}
@@ -656,13 +795,13 @@ const CollectionDetailPage = () => {
                     />
                 )}
 
-                {snackbar.show && (
-                    <Snackbar
-                        message={snackbar.message}
-                        type={snackbar.type}
-                        onClose={() => setSnackbar({ ...snackbar, show: false })}
-                    />
-                )}
+                <Snackbar
+                    isVisible={snackbar.show}
+                    message={snackbar.message}
+                    type={snackbar.type}
+                    action={snackbar.action}
+                    onClose={() => setSnackbar(s => ({ ...s, show: false, action: null }))}
+                />
             </motion.div>
 
             {!isAuthenticated && <Footer />}

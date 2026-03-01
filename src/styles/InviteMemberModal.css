@@ -1,0 +1,434 @@
+/* Invite Member Modal Styles */
+
+.invite-modal {
+    background: var(--bg-primary);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 460px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.invite-modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.invite-modal-body::-webkit-scrollbar { display: none; }
+
+/* ── Section label ── */
+.invite-section-label {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-tertiary);
+    margin: 0 0 0.75rem;
+}
+
+/* ── Invite section ── */
+.invite-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* ── Search bar ── */
+.invite-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.invite-search-icon {
+    position: absolute;
+    left: 0.875rem;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+.invite-search-input {
+    width: 100%;
+    padding: 0.7rem 2.5rem 0.7rem 2.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-family: var(--font-sans);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.invite-search-input:focus {
+    outline: none;
+    border-color: var(--accent-blue, #3887F8);
+    box-shadow: 0 0 0 3px rgba(56, 135, 248, 0.1);
+}
+
+.invite-search-spinner {
+    position: absolute;
+    right: 0.875rem;
+    color: var(--text-tertiary);
+}
+
+/* ── Search results ── */
+.invite-search-results {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    max-height: 220px;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.invite-search-results::-webkit-scrollbar { display: none; }
+
+.invite-user-result {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    text-align: left;
+}
+
+.invite-user-result:hover { background: var(--bg-tertiary); }
+
+/* ── Avatar (shared) ── */
+.invite-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.invite-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ── User meta ── */
+.invite-user-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+}
+
+.invite-user-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.invite-user-username {
+    font-size: 0.8rem;
+    color: var(--accent-blue, #3887F8);
+    font-weight: 500;
+}
+
+/* ── Selected user ── */
+.invite-selected-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+}
+
+.invite-selected-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.invite-deselect-btn {
+    margin-left: auto;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.invite-deselect-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+
+/* ── Send button ── */
+.invite-send-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* ── Success message ── */
+.invite-success-msg {
+    font-size: 0.875rem;
+    color: #22c55e;
+    font-weight: 600;
+    text-align: center;
+    padding: 0.5rem;
+    background: rgba(34, 197, 94, 0.08);
+    border-radius: var(--radius-md);
+    margin: 0;
+}
+
+/* ── Members section ── */
+.invite-members-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.invite-members-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    padding: 0 6px;
+    min-width: 20px;
+    height: 18px;
+    margin-left: 0.25rem;
+    vertical-align: middle;
+}
+
+.invite-members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.invite-member-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: background 0.15s ease;
+}
+
+/* ── Role dropdown (owner edits member roles) ── */
+.member-role-select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0.3rem 1.75rem 0.3rem 0.625rem;
+    border-radius: 6px;
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-primary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.5rem center;
+    color: var(--text-primary);
+    font-size: 0.775rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+    flex-shrink: 0;
+}
+
+.member-role-select:focus {
+    outline: none;
+    border-color: var(--accent-blue, #3887F8);
+    box-shadow: 0 0 0 2px rgba(56, 135, 248, 0.12);
+}
+
+.member-role-loading {
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+}
+
+/* ── Role select for new invite ── */
+.invite-role-row {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+.invite-role-select-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.invite-role-select {
+    appearance: none;
+    -webkit-appearance: none;
+    flex: 1;
+    padding: 0.55rem 2rem 0.55rem 0.75rem;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-secondary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.625rem center;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.invite-role-select:focus {
+    outline: none;
+    border-color: var(--accent-blue, #3887F8);
+    box-shadow: 0 0 0 3px rgba(56, 135, 248, 0.1);
+}
+
+/* ── Role badge (read-only for non-owner) ── */
+.invite-role-badge {
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.invite-role-badge.viewer {
+    background: rgba(56, 135, 248, 0.1);
+    color: var(--accent-blue, #3887F8);
+    border: 1px solid rgba(56, 135, 248, 0.2);
+}
+
+.invite-role-badge.editor {
+    background: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
+    border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
+/* ── Remove button ── */
+.invite-remove-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    background: rgba(239, 68, 68, 0.06);
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.invite-remove-btn:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.14);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+.invite-remove-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ── "You" badge ── */
+.invite-you-badge {
+    margin-left: auto;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent-blue, #3887F8);
+    background: rgba(56, 135, 248, 0.1);
+    border: 1px solid rgba(56, 135, 248, 0.2);
+    border-radius: 9999px;
+    padding: 2px 8px;
+}
+
+/* ── Empty state ── */
+.invite-empty-msg {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    text-align: center;
+    padding: 0.5rem 0;
+    margin: 0;
+}
+
+/* ── Exit section ── */
+.invite-exit-section {
+    padding-top: 0.25rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.invite-exit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 9999px;
+    border: 1.5px solid rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.06);
+    color: #ef4444;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    width: 100%;
+    justify-content: center;
+}
+
+.invite-exit-btn:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.5);
+    transform: translateY(-1px);
+}
+
+.invite-exit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (max-width: 640px) {
+    .invite-modal {
+        max-width: 100%;
+        border-radius: 0;
+        max-height: 100vh;
+    }
+}

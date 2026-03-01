@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, UserPlus, Bell as BellIcon, Check, Package, BookOpen, ArrowRight } from 'lucide-react';
+import { Heart, UserPlus, Bell as BellIcon, Check, Package, BookOpen, ArrowRight, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../contexts/NotificationContext';
 import '../styles/Notifications.css';
@@ -25,6 +25,10 @@ export const getNotificationMessage = (notification) => {
             return entityName ? `${username} liked your product ${entityName}` : 'Someone liked your product';
         case 'collection_like':
             return entityName ? `${username} liked your collection ${entityName}` : 'Someone liked your collection';
+        case 'invite_collection':
+            return entityName
+                ? `${username || 'Someone'} invited you to their collection ${entityName}`
+                : `${username || 'Someone'} invited you to a collection`;
         default:
             return 'New notification';
     }
@@ -59,6 +63,15 @@ const getTypeConfig = (type) => {
                 labelClass: 'notif-label--like',
                 entityIcon: <BookOpen size={19} strokeWidth={1.6} />,
             };
+        case 'invite_collection':
+            return {
+                itemClass: 'notif--invite',
+                badgeClass: 'notif-badge--invite',
+                badgeIcon: <Mail size={11} strokeWidth={2.5} />,
+                label: 'Invite',
+                labelClass: 'notif-label--invite',
+                entityIcon: <BookOpen size={19} strokeWidth={1.6} />,
+            };
         default:
             return {
                 itemClass: '',
@@ -79,6 +92,8 @@ const getNavigationPath = (notification) => {
             return notification.entity ? `/product/${notification.entity}` : null;
         case 'collection_like':
             return notification.entity ? `/c/${notification.entity}` : null;
+        case 'invite_collection':
+            return notification.entitySnapshot?.id ? `/c/${notification.entitySnapshot.id}` : null;
         default:
             return null;
     }
@@ -126,6 +141,14 @@ const NotificationItem = ({ notification, index }) => {
                     return <>Your {kind} {nameChip} received a like</>;
                 }
                 return <>Your {kind} received a like</>;
+            }
+            case 'invite_collection': {
+                const collectionName = entityName
+                    ? <span className="notif-entity-ref">{entityName}</span>
+                    : 'a collection';
+                return (
+                    <><span className="notif-username">@{senderUsername || 'Someone'}</span> invited you to {collectionName}</>
+                );
             }
             default:
                 return <>New notification</>;

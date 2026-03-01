@@ -125,6 +125,19 @@
     flex-shrink: 0;
 }
 
+.side-stat-clickable {
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.side-stat-clickable:hover {
+    color: var(--accent-blue, #3887F8);
+}
+
+.side-stat-clickable:hover svg {
+    color: var(--accent-blue, #3887F8);
+}
+
 .collection-actions-side {
     display: flex;
     align-items: center;
@@ -624,6 +637,139 @@
     transition: background 0.2s;
 }
 .pdp-auth-gate-secondary:hover { background: var(--glass-bg); }
+
+/* ─── Invite / Exit buttons ─────────────────────────────────────────────────── */
+.collection-invite-btn {
+    background: var(--bg-tertiary);
+    border-color: var(--border-color);
+    gap: 0.5rem;
+}
+
+.collection-invite-btn:hover {
+    border-color: var(--accent-blue, #3887F8);
+    color: var(--accent-blue, #3887F8);
+    background: rgba(56, 135, 248, 0.06);
+}
+
+.collection-exit-btn {
+    background: rgba(239, 68, 68, 0.06) !important;
+    border-color: rgba(239, 68, 68, 0.25) !important;
+    color: #ef4444 !important;
+}
+
+.collection-exit-btn:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.12) !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+.collection-member-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9999px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-left: 0.25rem;
+}
+
+/* ─── Members card ───────────────────────────────────────────────────────────── */
+.collection-members-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-2xl);
+    padding: 1.125rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.collection-members-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.collection-members-avatars {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.collection-member-avatar-slot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-left: -8px;
+    overflow: hidden;
+}
+
+.collection-member-avatar-slot:first-child {
+    margin-left: 0;
+}
+
+.collection-member-avatar-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.collection-member-more {
+    background: var(--bg-tertiary);
+    color: var(--text-tertiary);
+    font-size: 0.7rem;
+}
+
+.collection-members-manage-btn {
+    margin-left: auto;
+    padding: 0.375rem 0.875rem;
+    border-radius: 9999px;
+    border: 1.5px solid var(--border-color);
+    background: none;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.collection-members-manage-btn:hover:not(:disabled) {
+    border-color: var(--accent-blue, #3887F8);
+    color: var(--accent-blue, #3887F8);
+}
+
+.collection-members-exit-btn {
+    border-color: rgba(239, 68, 68, 0.25) !important;
+    color: #ef4444 !important;
+}
+
+.collection-members-exit-btn:hover:not(:disabled) {
+    border-color: rgba(239, 68, 68, 0.5) !important;
+    background: rgba(239, 68, 68, 0.06);
+}
 
 /* ─── Collection Title Row & Private Badge ───────────────────────────────────── */
 .collection-title-row {

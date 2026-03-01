@@ -187,6 +187,14 @@ class UserService {
             throw error;
         }
     }
+
+    async searchUsers(query) {
+        try {
+            return await UserRepository.searchUsers(query);
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export default new UserService();

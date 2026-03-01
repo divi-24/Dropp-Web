@@ -157,6 +157,16 @@ class CollectionRepository {
         const response = await apiClient.get(`${API_CONFIG.ENDPOINTS.ADD_PRODUCT}/${collectionId}`);
         return response.data;
     }
+
+    async inviteMember(collectionId, userId, role) {
+        const response = await apiClient.patch(`${API_CONFIG.ENDPOINTS.INVITE_MEMBER}/${collectionId}`, { id: userId, role });
+        return response.data;
+    }
+
+    async revokeMember(userId, collectionId) {
+        const response = await apiClient.delete(`${API_CONFIG.ENDPOINTS.REVOKE_MEMBER}/${collectionId}`, { data: { memberId: userId } });
+        return response.data;
+    }
 }
 
 export default new CollectionRepository();

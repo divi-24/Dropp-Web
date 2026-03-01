@@ -9,7 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Profile.css';
 
-const ProductCard = ({ product, onDelete }) => {
+const ProductCard = ({ product, onDelete, isCollectionOwner = false }) => {
     const { isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
     const [openMenu, setOpenMenu] = useState(false);
@@ -24,7 +24,9 @@ const ProductCard = ({ product, onDelete }) => {
 
     const productId = product._id || product.id;
     const creator = product.createdBy;
+    // Product owner = user who added this product; collection owner can manage all products
     const isOwner = isAuthenticated && user && (creator?._id === user._id || creator === user._id);
+    const canManageProduct = isOwner || isCollectionOwner;
 
     const handleCardClick = (e) => {
         if (e.target.closest('.board-actions') || e.target.closest('.share-popup') || e.target.closest('.board-menu-container')) return;
@@ -175,7 +177,7 @@ const ProductCard = ({ product, onDelete }) => {
                             <Share2 size={18} />
                         </button>
 
-                        {isOwner && (
+                        {canManageProduct && (
                             <div className="board-menu-container">
                                 <button
                                     className="board-action-btn"

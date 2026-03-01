@@ -365,6 +365,39 @@
     background: linear-gradient(135deg, #be123c, #f43f5e);
 }
 
+.notif--invite .notif-dot {
+    background: linear-gradient(135deg, #7c3aed, #a78bfa);
+}
+
+/* ── Invite — purple ── */
+.notif--invite::before {
+    background: linear-gradient(135deg, #7c3aed, #a78bfa);
+}
+
+.notif--invite.unread {
+    background: rgba(124, 58, 237, 0.04);
+    border-color: rgba(124, 58, 237, 0.14);
+}
+
+[data-theme='dark'] .notif--invite.unread { background: rgba(124, 58, 237, 0.07); }
+
+.notif--invite-avatar {
+    background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    color: #fff;
+}
+
+.notif-badge--invite {
+    background: linear-gradient(135deg, #7c3aed, #a78bfa);
+}
+
+.notif-label--invite {
+    background: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
+    border: 1px solid rgba(124, 58, 237, 0.15);
+}
+
+[data-theme='dark'] .notif-label--invite { background: rgba(167, 139, 250, 0.15); color: #a78bfa; }
+
 /* ─── Empty State ────────────────────────────────────────── */
 
 .empty-state {
