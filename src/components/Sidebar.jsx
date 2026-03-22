@@ -10,7 +10,8 @@ import {
     Settings as SettingsIcon,
     Bell,
     Moon,
-    Sun
+    Sun,
+    BarChart3
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -36,6 +37,7 @@ const Sidebar = () => {
     const userNavItems = isAuthenticated ? [
         { path: '/profile/me', label: 'Profile', icon: User },
         { path: '/notifications', label: 'Notifications', icon: Bell },
+        { path: '/analytics', label: 'Analytics', icon: BarChart3 },
         { path: '/settings', label: 'Settings', icon: SettingsIcon },
     ] : [];
 

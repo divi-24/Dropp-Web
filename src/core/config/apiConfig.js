@@ -7,9 +7,12 @@ export const API_CONFIG = {
         SIGNUP: '/user/signup',
         PROFILE: '/user/profile/',
         VERIFY_EMAIL: '/user/verify-email',
-        VERIFY_TOKEN: '/user/verify-token',
+        VERIFY_EMAIL_TOKEN: '/user/verify-token',
         UPDATE_PASSWORD: '/user/update-password',
         DELETE_ACCOUNT: '/user/delete',
+        ANALYTICS: '/user/analytics',
+        RESET_PASSWORD_REQUEST: '/user/reset-password-request',
+        RESET_PASSWORD: '/user/reset-password',
         COLLECTIONS: '/c',
         COLLECTION_BY_ID: '/c/getCollectionById',
         EXPLORE: '/c/explore/collections',
@@ -21,10 +24,9 @@ export const API_CONFIG = {
         UPDATE_COLLECTION_VISIBILITY: '/c/updateVisibility',
         NOTIFICATIONS: '/user/notification',
         MARK_NOTIFICATION_READ: '/user/notification/markRead',
-        MARK_ALL_NOTIFICATIONS_READ: '/user/notification/markRead/all',
         ADD_PRODUCT: '/product/cId',
         PRODUCT_EXPLORE: '/product/explore',
-        PRODUCT_BY_ID: '/product',
+        PRODUCT_BY_ID: '/product/pId',
         LIKE_PRODUCT: '/product/like',
         DELETE_PRODUCT: '/product',
         SEARCH_PRODUCTS: '/product/search', // GET /product/search?q={query}
@@ -32,8 +34,11 @@ export const API_CONFIG = {
         PRODUCT_BY_PID: '/product/pId', // GET /product/pId/{productId}
         PRODUCT_MEDIA: '/product/media/pId', // POST /product/media/pId/{productId}
         DELETE_PRODUCT_MEDIA: '/product/media', // DELETE /product/media/{mediaId}/pId/{productId}/delete
+        PIN_PRODUCT: '/product/pin', // PATCH /product/pin/{productId}
+        FEATURE_PRODUCT: '/product', // POST /product/{productId}/feature
         INVITE_MEMBER: '/c/invite', // PATCH /c/invite/{collectionId}
         REVOKE_MEMBER: '/c/revokeMember', // DELETE /c/revokeMember/{collectionId} body: { memberId }
+        PIN_COLLECTION: '/c/pin', // PATCH /c/pin/{collectionId}
     },
     TIMEOUT: 10000,
 };

@@ -1,259 +1,166 @@
-import React, { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { useLandingTheme } from '../hooks/useLandingTheme';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import '../styles/Landing.css';
 
-/* ── Tilt image with grayscale → color reveal on hover ───── */
-const TiltImage = ({ src, alt, isDark }) => {
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
-
-  const handleMouseMove = useCallback((e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const normX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-    const normY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-    setTilt({ x: normY * -12, y: normX * 12 });
-
-    // Update CSS vars for the color reveal clip-path
-    e.currentTarget.style.setProperty('--rx', `${e.clientX - rect.left}px`);
-    e.currentTarget.style.setProperty('--ry', `${e.clientY - rect.top}px`);
-  }, []);
-
-  const handleMouseLeave = useCallback((e) => {
-    setTilt({ x: 0, y: 0 });
-    setIsHovering(false);
-    e.currentTarget.style.setProperty('--rx', '-200px');
-    e.currentTarget.style.setProperty('--ry', '-200px');
-  }, []);
-
-  const handleMouseEnter = useCallback(() => {
-    setIsHovering(true);
-  }, []);
-
-  return (
-    <div
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onMouseEnter={handleMouseEnter}
-      className="feature-image"
-      style={{
-        borderRadius: '12px',
-        overflow: 'hidden',
-        aspectRatio: '4/3',
-        position: 'relative',
-        perspective: '800px',
-        '--rx': '-200px',
-        '--ry': '-200px',
-      }}
-    >
-      <div style={{
-        width: '100%',
-        height: '100%',
-        transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(${isHovering ? 1.02 : 1})`,
-        transition: isHovering ? 'transform 0.1s ease-out' : 'transform 0.4s ease-out',
-        transformStyle: 'preserve-3d',
-        position: 'relative',
-      }}>
-        {/* Grayscale base image */}
-        <img
-          src={src}
-          alt={alt}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block',
-            filter: 'grayscale(1) contrast(1.05)',
-          }}
-        />
-        {/* Full color overlay — revealed by clip-path circle */}
-        <img
-          src={src}
-          alt=""
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block',
-            clipPath: 'circle(80px at var(--rx) var(--ry))',
-            opacity: isHovering ? 1 : 0,
-            transition: 'opacity 0.25s ease',
-            pointerEvents: 'none',
-          }}
-        />
-        {/* Glossy light reflection that follows mouse */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: isHovering
-            ? `radial-gradient(circle at ${50 + tilt.y * 3}% ${50 + tilt.x * 3}%, rgba(255,255,255,0.1) 0%, transparent 60%)`
-            : 'none',
-          pointerEvents: 'none',
-          transition: 'background 0.1s ease-out',
-        }} />
-      </div>
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        background: isDark
-          ? 'linear-gradient(to top, rgba(10,10,10,0.3) 0%, transparent 40%)'
-          : 'linear-gradient(to top, rgba(255,255,255,0.15) 0%, transparent 40%)',
-        pointerEvents: 'none',
-      }} />
-    </div>
-  );
-};
+const expertises = [
+  {
+    title: 'Curate Collections',
+    number: '01',
+    desc: 'Build stunning product collections from your favorite brands. Organize by style, season, or mood — your audience gets a shoppable gallery they love.',
+    tags: ['Product curation', 'Brand partnerships', 'Mood boards', 'Seasonal picks', 'Style guides'],
+  },
+  {
+    title: 'Share & Earn',
+    number: '02',
+    desc: 'Generate affiliate links for every product you recommend. Share across all platforms and earn commission on every sale — automatically tracked.',
+    tags: ['Affiliate links', 'Revenue tracking', 'Multi-platform sharing', 'Analytics dashboard', 'Payout management'],
+  },
+  {
+    title: 'Grow Your Brand',
+    number: '03',
+    desc: 'Build a store that represents you. Customize your creator profile, gain followers, and establish yourself as a trusted voice in your niche.',
+    tags: ['Creator profiles', 'Follower growth', 'Brand identity', 'Social integration', 'Community building'],
+  },
+];
 
 const Features = () => {
-  const t = useLandingTheme();
-
-  const accentStyle = {
-    fontFamily: 'var(--font-serif)',
-    fontStyle: 'italic',
-    fontWeight: '400',
-    background: t.accentGradient,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-  };
-
-  const features = [
-    {
-      number: '01',
-      title: 'Curated collections',
-      description: 'Create beautiful collections of products you use and love. Tag every item with your affiliate link — your followers see the full collection and can click through to purchase from the original store.',
-      image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&q=80',
-      imageAlt: 'Fashion collection with curated products ready for affiliate linking',
-    },
-    {
-      number: '02',
-      title: 'Social-first discovery',
-      description: 'Follow creators, explore feeds, and discover products through people you trust. A social experience built around authentic recommendations and real earnings.',
-      image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80',
-      imageAlt: 'Creators discovering and sharing product recommendations together',
-    },
-    {
-      number: '03',
-      title: 'Affiliate earnings',
-      description: 'Share affiliate links that actually convert. Your followers click, they purchase from the brand directly, and you earn — simple, transparent, and powerful.',
-      image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=600&q=80',
-      imageAlt: 'Creator tracking affiliate earnings and revenue growth',
-    },
-    {
-      number: '04',
-      title: 'Creator analytics',
-      description: 'Understand what resonates. Track engagement, clicks, and earnings across every collection. Know your audience better than they know themselves.',
-      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80',
-      imageAlt: 'Analytics dashboard showing click-through rates and creator performance metrics',
-    },
-  ];
+  const [openIndex, setOpenIndex] = useState(0);
 
   return (
-    <section style={{
-      padding: '0 0 140px',
-      background: t.bg,
-    }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-        {/* Section label */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          style={{
-            fontSize: '0.75rem',
-            fontWeight: '500',
-            color: t.textMuted,
-            textTransform: 'uppercase',
-            letterSpacing: '0.12em',
-            marginBottom: '20px',
-            fontFamily: 'var(--font-display)',
-          }}
-        >
-          How it works
-        </motion.p>
+    <section
+      className="features-section landing-section"
+      style={{ backgroundColor: 'var(--color-beige)', padding: '140px 0' }}
+    >
+      <div className="landing-container">
+        {/* Header */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'clamp(1fr, 100vw, 1fr 1fr)', gap: 'clamp(40px, 6vw, 60px)', marginBottom: 'clamp(40px, 8vw, 80px)', alignItems: 'end' }} className="features-header">
+          <div>
+            <motion.span
+              className="section-label"
+              style={{ color: 'var(--color-accent)' }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              EXPERTISES
+            </motion.span>
+            <motion.h2
+              className="font-display"
+              style={{ fontSize: 'clamp(36px, 5vw, 64px)', color: 'var(--color-dark-green)', marginTop: 16 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              EVERYTHING<br />YOU NEED.
+            </motion.h2>
+          </div>
+          <motion.p
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 'clamp(13px, 2.5vw, 15px)',
+              lineHeight: 1.8,
+              color: 'rgba(0,77,44,0.6)',
+              maxWidth: 400,
+            }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
+            From curation to monetization, Dropp gives creators every tool they need to turn their taste into income.
+          </motion.p>
+        </div>
 
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={{
-            fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-            color: t.text,
-            fontFamily: 'var(--font-display)',
-            fontWeight: '600',
-            letterSpacing: '-0.03em',
-            lineHeight: '1',
-            marginBottom: '80px',
-            maxWidth: '600px',
-          }}
-        >
-          Not just a feed.
-          <br />
-          A marketplace of{' '}
-          <span style={accentStyle}>taste.</span>
-        </motion.h2>
-
-        {/* Alternating feature rows */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '100px' }}>
-          {features.map((feature, i) => (
+        {/* Accordion */}
+        <div>
+          {expertises.map((item, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 40 }}
+              className="feature-accordion-item"
+              style={{ borderColor: 'rgba(0,77,44,0.1)' }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-100px' }}
-              transition={{ duration: 0.7 }}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '60px',
-                alignItems: 'center',
-              }}
-              className="feature-row"
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
             >
-              {/* Text */}
-              <div style={{ order: i % 2 === 0 ? 1 : 2 }}>
-                <span style={{
-                  fontSize: '0.75rem',
-                  fontWeight: '500',
-                  color: t.textSubtle,
-                  fontFamily: 'var(--font-display)',
-                  letterSpacing: '0.04em',
-                  display: 'block',
-                  marginBottom: '20px',
-                }}>
-                  {feature.number}
-                </span>
-                <h3 style={{
-                  fontSize: 'clamp(1.75rem, 3vw, 2.25rem)',
-                  fontWeight: '600',
-                  color: t.text,
-                  fontFamily: 'var(--font-display)',
-                  letterSpacing: '-0.02em',
-                  lineHeight: '1.15',
-                  marginBottom: '20px',
-                }}>
-                  {feature.title}
-                </h3>
-                <p style={{
-                  fontSize: '1rem',
-                  color: t.textSecondary,
-                  lineHeight: '1.75',
-                  maxWidth: '420px',
-                }}>
-                  {feature.description}
-                </p>
+              <div
+                className="feature-accordion-header"
+                onClick={() => setOpenIndex(openIndex === i ? -1 : i)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: 'var(--color-accent)',
+                      minWidth: 28,
+                    }}
+                  >
+                    {item.number}
+                  </span>
+                  <h3
+                    className="font-display"
+                    style={{
+                      fontSize: 'clamp(20px, 3vw, 32px)',
+                      color: 'var(--color-dark-green)',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {item.title}
+                  </h3>
+                </div>
+                <div
+                  className="feature-accordion-toggle"
+                  style={{
+                    background: openIndex === i ? 'var(--color-accent)' : 'transparent',
+                    color: openIndex === i ? 'white' : 'var(--color-dark-green)',
+                    border: openIndex === i ? 'none' : '1px solid rgba(0,77,44,0.2)',
+                  }}
+                >
+                  {openIndex === i ? '−' : '+'}
+                </div>
               </div>
 
-              {/* Image with tilt + color reveal */}
-              <div style={{ order: i % 2 === 0 ? 2 : 1 }}>
-                <TiltImage
-                  src={feature.image}
-                  alt={feature.imageAlt}
-                  isDark={t.isDark}
-                />
-              </div>
+              <AnimatePresence initial={false}>
+                {openIndex === i && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <div style={{ paddingBottom: 32, paddingLeft: 48 }}>
+                      <p style={{
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: 14,
+                        lineHeight: 1.8,
+                        color: 'rgba(0,77,44,0.6)',
+                        maxWidth: 500,
+                        marginBottom: 20,
+                      }}>
+                        {item.desc}
+                      </p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        {item.tags.map((tag, j) => (
+                          <span
+                            key={j}
+                            className="tag-pill"
+                            style={{
+                              background: 'var(--color-dark-green)',
+                              color: 'white',
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           ))}
         </div>

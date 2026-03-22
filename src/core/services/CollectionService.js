@@ -248,6 +248,10 @@ class CollectionService {
             throw error;
         }
     }
+
+    async pinCollection(id) {
+        return CollectionRepository.pinCollection(id);
+    }
 }
 
 export default new CollectionService();

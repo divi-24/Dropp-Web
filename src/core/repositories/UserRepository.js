@@ -68,20 +68,6 @@ class UserRepository {
     }
 
     /**
-     * Verify token from email link
-     * @param {string} token
-     * @returns {Promise<any>}
-     */
-    async verifyToken(token) {
-        try {
-            const response = await apiClient.get(`${API_CONFIG.ENDPOINTS.VERIFY_TOKEN}/${token}`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    /**
      * Delete user account
      * @returns {Promise<any>}
      */
@@ -115,8 +101,16 @@ class UserRepository {
      */
     async getUserByUsername(username) {
         try {
+            const users = await this.searchUsers(username);
+            const normalized = username.trim().toLowerCase();
+            const exact = users.find((u) => (u.username || '').toLowerCase() === normalized);
+            if (exact) {
+                return { result: exact };
+            }
+
+            // Fallback in case backend later supports direct username lookup.
             const response = await apiClient.get(`/user/profile/${encodeURIComponent(username)}`);
-            return response.data;
+            return response.data?.results ? { result: response.data.results } : response.data;
         } catch (error) {
             throw error;
         }
@@ -201,10 +195,33 @@ class UserRepository {
 
     async markAllNotificationsRead() {
         try {
-            await apiClient.patch(API_CONFIG.ENDPOINTS.MARK_ALL_NOTIFICATIONS_READ);
+            await apiClient.patch(`${API_CONFIG.ENDPOINTS.MARK_NOTIFICATION_READ}/all`);
         } catch (error) {
             throw error;
         }
+    }
+
+    async verifyEmailToken(token) {
+        const response = await apiClient.get(`${API_CONFIG.ENDPOINTS.VERIFY_EMAIL_TOKEN}/${encodeURIComponent(token)}`);
+        return response.data;
+    }
+
+    async getAnalytics() {
+        const response = await apiClient.get(API_CONFIG.ENDPOINTS.ANALYTICS);
+        return response.data;
+    }
+
+    async requestResetPassword(email) {
+        const response = await apiClient.post(API_CONFIG.ENDPOINTS.RESET_PASSWORD_REQUEST, { email });
+        return response.data;
+    }
+
+    async resetPassword(id, token, password) {
+        const response = await apiClient.post(
+            `${API_CONFIG.ENDPOINTS.RESET_PASSWORD}/${encodeURIComponent(id)}/${encodeURIComponent(token)}`,
+            { password }
+        );
+        return response.data;
     }
 
     /**

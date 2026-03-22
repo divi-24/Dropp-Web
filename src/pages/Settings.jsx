@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Settings as SettingsIcon, User, Lock, Moon, Globe, HelpCircle, AlertCircle } from 'lucide-react';
+import { Bell, Settings as SettingsIcon, User, Lock, Moon, Globe, HelpCircle, AlertCircle, BadgeCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import UpdatePasswordModal from '../components/UpdatePasswordModal';
 import { AnimatePresence } from 'framer-motion';
 import UserService from '../core/services/UserService';
@@ -8,6 +9,7 @@ import Snackbar from '../components/Snackbar';
 import '../styles/Settings.css';
 
 const Settings = () => {
+    const navigate = useNavigate();
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deleteUsername, setDeleteUsername] = useState('');
@@ -19,10 +21,17 @@ const Settings = () => {
         type: 'success'
     });
 
-    const fetchProfile = async () => {
+    const showSnackbar = useCallback((message, type = 'success') => {
+        setSnackbar({ isVisible: true, message, type });
+    }, []);
+
+    const closeSnackbar = () => {
+        setSnackbar(prev => ({ ...prev, isVisible: false }));
+    };
+
+    const fetchProfile = useCallback(async () => {
         try {
             const profile = await UserService.getUserProfile();
-            console.log("Fetched Profile:", profile);
             setUserProfile(profile);
         } catch (error) {
             console.error('Error fetching profile:', error);
@@ -30,19 +39,22 @@ const Settings = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [showSnackbar]);
 
     useEffect(() => {
         fetchProfile();
-    }, []);
+    }, [fetchProfile]);
 
-    const showSnackbar = (message, type = 'success') => {
-        setSnackbar({ isVisible: true, message, type });
-    };
-
-    const closeSnackbar = () => {
-        setSnackbar(prev => ({ ...prev, isVisible: false }));
-    };
+    // Refetch when user returns to this tab (e.g. after clicking verify link in email)
+    useEffect(() => {
+        const onVisible = () => {
+            if (document.visibilityState === 'visible') {
+                fetchProfile();
+            }
+        };
+        document.addEventListener('visibilitychange', onVisible);
+        return () => document.removeEventListener('visibilitychange', onVisible);
+    }, [fetchProfile]);
 
     const handleVerifyEmail = async () => {
         console.log("Verify Email Button Clicked");
@@ -51,6 +63,7 @@ const Settings = () => {
             await UserService.verifyEmail();
             console.log("Verification email sent successfully");
             showSnackbar('Verification link has been sent to your email', 'success');
+            await fetchProfile();
         } catch (error) {
             console.error('Error sending verification email:', error);
             showSnackbar('Failed to send verification email. Please try again.', 'error');
@@ -101,13 +114,29 @@ const Settings = () => {
                         <button className="settings-btn">Edit</button>
                     </div>
 
-                    <div className="settings-item">
+                    <div className="settings-item settings-item-email">
                         <div className="settings-item-content">
-                            <h3>Email Address</h3>
-                            <p>{loading ? 'Loading...' : (userProfile?.email || 'user@example.com')}</p>
+                            <div className="email-title-row">
+                                <h3>Email Address</h3>
+                                {!loading && userProfile?.emailVerified && (
+                                    <span className="email-verified-badge" title="Your email is verified">
+                                        <span className="email-verified-badge-icon" aria-hidden>
+                                            <BadgeCheck size={15} strokeWidth={2.25} />
+                                        </span>
+                                        <span className="email-verified-badge-text">Verified</span>
+                                    </span>
+                                )}
+                            </div>
+                            <p className="settings-email-value">{loading ? 'Loading...' : (userProfile?.email || 'user@example.com')}</p>
                             {!loading && userProfile && !userProfile.emailVerified && (
                                 <p className="verification-status unverified">
-                                    <AlertCircle size={14} /> Unverified
+                                    <AlertCircle size={14} /> Not verified yet — check your inbox after clicking Verify
+                                </p>
+                            )}
+                            {!loading && userProfile?.emailVerified && (
+                                <p className="verification-status verified">
+                                    <BadgeCheck size={14} strokeWidth={2.5} className="verified-tick" />
+                                    This address is confirmed. You&apos;ll receive important account emails here.
                                 </p>
                             )}
                         </div>
@@ -117,7 +146,6 @@ const Settings = () => {
                                     Verify Email
                                 </button>
                             )}
-                            {/* <button className="settings-btn">Change</button> */}
                         </div>
                     </div>
 
@@ -209,6 +237,14 @@ const Settings = () => {
                         <SettingsIcon size={20} />
                         Preferences
                     </h2>
+
+                    <div className="settings-item">
+                        <div className="settings-item-content">
+                            <h3>Analytics</h3>
+                            <p>View collection and product performance</p>
+                        </div>
+                        <button className="settings-btn" onClick={() => navigate('/analytics')}>Open</button>
+                    </div>
 
                     <div className="settings-item">
                         <div className="settings-item-content">

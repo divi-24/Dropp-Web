@@ -10,7 +10,7 @@ class CollectionRepository {
      * @returns {Promise<Array>}
      */
     async getCollections() {
-        const response = await apiClient.get(API_CONFIG.ENDPOINTS.COLLECTIONS);
+        const response = await apiClient.get(API_CONFIG.ENDPOINTS.MY_COLLECTIONS);
         return response.data;
     }
 
@@ -102,7 +102,12 @@ class CollectionRepository {
      * @returns {Promise<Object>}
      */
     async deleteCollection(id) {
-        const response = await apiClient.delete(`${API_CONFIG.ENDPOINTS.COLLECTION_BY_ID}/${id}`);
+        const response = await apiClient.delete(`${API_CONFIG.ENDPOINTS.COLLECTIONS}/${id}`);
+        return response.data;
+    }
+
+    async pinCollection(id) {
+        const response = await apiClient.patch(`${API_CONFIG.ENDPOINTS.PIN_COLLECTION}/${id}`);
         return response.data;
     }
 

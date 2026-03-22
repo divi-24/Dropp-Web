@@ -1,47 +1,80 @@
 :root {
-    /* Core Palette */
+    /* ─── Core Palette ─── */
     --color-black: #000000;
     --color-white: #ffffff;
     --color-gray-50: #fafafa;
-    --color-gray-100: #f5f5f5;
-    --color-gray-200: #e5e5e5;
-    --color-gray-300: #d4d4d4;
-    --color-gray-400: #a3a3a3;
-    --color-gray-500: #737373;
-    --color-gray-600: #525252;
-    --color-gray-700: #404040;
-    --color-gray-800: #262626;
-    --color-gray-900: #171717;
-    --color-gray-950: #0a0a0a;
+    --color-gray-100: #f4f4f5;
+    --color-gray-200: #e4e4e7;
+    --color-gray-300: #d1d1d6;
+    --color-gray-400: #a1a1aa;
+    --color-gray-500: #71717a;
+    --color-gray-600: #52525b;
+    --color-gray-700: #3f3f46;
+    --color-gray-800: #27272a;
+    --color-gray-900: #18181b;
+    --color-gray-950: #09090b;
 
-    /* Warm accent — used sparingly for serif italic highlights */
-    --color-cream: #e8dcc8;
-    --color-cream-muted: #c4b89a;
+    /* ─── New Brand Palette — Deep Violet + Warm Cream ─── */
+    /* Primary accent: vibrant electric pink/rose */
+    --color-accent: #F0057A;
+    --color-accent-hover: #D0046A;
+    --color-accent-soft: #fce4f0;
+    --color-accent-light: #fbb6d9;
 
-    /* Semantic */
+    /* Secondary: deep indigo/violet (replaces dark green) */
+    --color-deep: #1E0A3C;
+    /* ultra-dark violet */
+    --color-deep-mid: #2D1160;
+    /* rich plum */
+    --color-deep-light: #4A1D96;
+    /* indigo-violet */
+
+    /* Tertiary: warm cream/sand (kept, slightly warmer) */
+    --color-beige: #FDF8F3;
+    --color-beige-dark: #F5EEE6;
+    --color-cream: #FFFCF9;
+
+    /* Decorative */
+    --color-violet: #7C3AED;
+    --color-violet-light: #A78BFA;
+    --color-indigo: #4F46E5;
+    --color-rose: #F43F5E;
+    --color-amber: #F59E0B;
+
+    /* Legacy aliases (keep for backward compat with old component styles) */
+    --color-dark-green: var(--color-deep);
+    --color-green-light: var(--color-deep-mid);
+
+    /* ─── Semantic ─── */
     --bg-primary: var(--color-white);
     --bg-secondary: var(--color-gray-50);
     --bg-tertiary: var(--color-gray-100);
-    --text-primary: var(--color-black);
+    --text-primary: var(--color-gray-900);
     --text-secondary: var(--color-gray-600);
     --text-muted: var(--color-gray-500);
+    --text-tertiary: var(--color-gray-400);
     --border-color: var(--color-gray-200);
-    --accent-color: var(--color-black);
+    --accent-color: var(--color-accent);
     --accent-text: var(--color-white);
 
-    /* Typography */
+    /* ─── Landing-specific tokens ─── */
+    --landing-bg: var(--color-beige);
+    --landing-text: var(--color-deep);
+    --landing-accent: var(--color-accent);
+
+    /* ─── Typography ─── */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-display: 'Instrument Sans', var(--font-sans);
     --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
 
-    /* Spacing */
-    --spacing-xs: 0.5rem;
-    --spacing-sm: 1rem;
-    --spacing-md: 2rem;
-    --spacing-lg: 4rem;
-    --spacing-xl: 8rem;
+    /* ─── Spacing (Fluid) ─── */
+    --spacing-xs: clamp(0.25rem, 1vw, 0.5rem);
+    --spacing-sm: clamp(0.5rem, 2vw, 1rem);
+    --spacing-md: clamp(1rem, 4vw, 2rem);
+    --spacing-lg: clamp(2rem, 6vw, 4rem);
+    --spacing-xl: clamp(4rem, 8vw, 8rem);
 
-    /* Layout */
+    /* ─── Layout ─── */
     --container-width: 1200px;
     --header-height: 72px;
     --radius-sm: 4px;
@@ -49,56 +82,66 @@
     --radius-lg: 16px;
     --radius-xl: 24px;
     --radius-2xl: 32px;
+    --radius-full: 999px;
 
-    /* Effects — intentionally minimal */
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(0, 0, 0, 0.05);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-    --backdrop-blur: 12px;
+    /* ─── Effects ─── */
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(0, 0, 0, 0.06);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    --backdrop-blur: 16px;
 
-    /* Blue accent gradient */
-    --accent-gradient: linear-gradient(135deg, #0D36C7, #3887F8, #57A0FF);
-    --accent-blue: #3887F8;
-    --accent-blue-light: #57A0FF;
-    --accent-blue-dark: #0D36C7;
+    /* ─── Gradients ─── */
+    --accent-gradient: linear-gradient(135deg, #F0057A 0%, #FF4DA6 50%, #FF80C0 100%);
+    --deep-gradient: linear-gradient(135deg, #1E0A3C 0%, #2D1160 50%, #4A1D96 100%);
+    --violet-gradient: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    --aurora-gradient: linear-gradient(135deg, #F0057A 0%, #7C3AED 50%, #4F46E5 100%);
+    --warm-gradient: linear-gradient(135deg, #F0057A 0%, #F59E0B 100%);
 
-    /* Transitions */
+    /* ─── Accent blue (for notifications, links) ─── */
+    --accent-blue: #6366F1;
+    --accent-blue-light: #818CF8;
+    --accent-blue-dark: #4338CA;
+
+    /* ─── Transitions ─── */
     --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-medium: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Dark Theme */
+/* Dark Theme — for authenticated pages */
 [data-theme='dark'] {
-    --bg-primary: var(--color-gray-950);
-    --bg-secondary: var(--color-black);
-    --bg-tertiary: var(--color-gray-900);
+    --bg-primary: #09090b;
+    --bg-secondary: #111115;
+    --bg-tertiary: #18181b;
     --text-primary: var(--color-white);
     --text-secondary: var(--color-gray-400);
     --text-muted: var(--color-gray-500);
-    --border-color: rgba(255, 255, 255, 0.08);
-    --accent-color: var(--color-white);
-    --accent-text: var(--color-black);
+    --text-tertiary: var(--color-gray-600);
+    --border-color: rgba(255, 255, 255, 0.07);
+    --accent-color: var(--color-accent);
+    --accent-text: var(--color-white);
 
-    --glass-bg: rgba(10, 10, 10, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.06);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --glass-bg: rgba(18, 18, 24, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.07);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme='light']) {
-        --bg-primary: var(--color-gray-950);
-        --bg-secondary: var(--color-black);
-        --bg-tertiary: var(--color-gray-900);
+        --bg-primary: #09090b;
+        --bg-secondary: #111115;
+        --bg-tertiary: #18181b;
         --text-primary: var(--color-white);
         --text-secondary: var(--color-gray-400);
         --text-muted: var(--color-gray-500);
-        --border-color: rgba(255, 255, 255, 0.08);
-        --accent-color: var(--color-white);
-        --accent-text: var(--color-black);
+        --text-tertiary: var(--color-gray-600);
+        --border-color: rgba(255, 255, 255, 0.07);
+        --accent-color: var(--color-accent);
+        --accent-text: var(--color-white);
 
-        --glass-bg: rgba(10, 10, 10, 0.8);
-        --glass-border: rgba(255, 255, 255, 0.06);
-        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        --glass-bg: rgba(18, 18, 24, 0.85);
+        --glass-border: rgba(255, 255, 255, 0.07);
+        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     }
 }

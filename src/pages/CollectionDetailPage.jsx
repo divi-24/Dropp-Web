@@ -20,7 +20,8 @@ import {
     Lock,
     Globe,
     Users,
-    LogOut
+    LogOut,
+    Pin
 } from 'lucide-react';
 import CollectionService from '../core/services/CollectionService';
 import UserService from '../core/services/UserService';
@@ -59,6 +60,7 @@ const CollectionDetailPage = () => {
     const [followModal, setFollowModal] = useState({ isOpen: false, type: 'followers' });
     const [copied, setCopied] = useState(false);
     const [visibilityLoading, setVisibilityLoading] = useState(false);
+    const [pinLoading, setPinLoading] = useState(false);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [exitLoading, setExitLoading] = useState(null); // 'main' | 'members' | null
 
@@ -274,6 +276,26 @@ const CollectionDetailPage = () => {
             setSnackbar({ show: true, message: 'Failed to update visibility', type: 'error' });
         } finally {
             setVisibilityLoading(false);
+        }
+    };
+
+    const handlePinCollection = async () => {
+        if (!isOwner || pinLoading) return;
+        const nextPinned = !collection?.isPinned;
+        setPinLoading(true);
+        setCollection((prev) => ({ ...prev, isPinned: nextPinned }));
+        try {
+            await CollectionService.pinCollection(id);
+            setSnackbar({
+                show: true,
+                message: nextPinned ? 'Collection pinned' : 'Collection unpinned',
+                type: 'success'
+            });
+        } catch (error) {
+            setCollection((prev) => ({ ...prev, isPinned: !nextPinned }));
+            setSnackbar({ show: true, message: 'Failed to update pin status', type: 'error' });
+        } finally {
+            setPinLoading(false);
         }
     };
 
@@ -512,6 +534,17 @@ const CollectionDetailPage = () => {
                                         {copied ? <Check size={16} /> : <Share2 size={16} />}
                                         {copied ? 'Copied!' : 'Share'}
                                     </button>
+
+                                    {isOwner && (
+                                        <button
+                                            className={`pdp-action-btn${collection?.isPinned ? ' pdp-liked' : ''}`}
+                                            onClick={handlePinCollection}
+                                            disabled={pinLoading}
+                                        >
+                                            <Pin size={16} />
+                                            {collection?.isPinned ? 'Pinned' : 'Pin'}
+                                        </button>
+                                    )}
 
                                     {isOwner && (
                                         <div className="pdp-options-wrap">

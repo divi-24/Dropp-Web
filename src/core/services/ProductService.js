@@ -143,6 +143,14 @@ class ProductService {
             throw error;
         }
     }
+
+    async pinProduct(id) {
+        return ProductRepository.pinProduct(id);
+    }
+
+    async featureProduct(id) {
+        return ProductRepository.featureProduct(id);
+    }
 }
 
 export default new ProductService();

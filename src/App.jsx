@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Sidebar from './components/Sidebar';
 import CustomCursor from './components/CustomCursor';
+import SmoothScroll from './components/SmoothScroll';
+import Preloader from './components/Preloader';
 import Landing from './pages/Landing';
 import Home from './pages/Home';
 import Explore from './pages/Explore';
@@ -19,11 +21,14 @@ import Collection from './pages/Collection';
 import CollectionDetailPage from './pages/CollectionDetailPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import UserProfilePage from './pages/UserProfilePage';
-import VerifyEmail from './pages/VerifyEmail';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import VerifyEmailToken from './pages/VerifyEmailToken';
+import Analytics from './pages/Analytics';
 import { DataProvider } from './contexts/DataContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -75,6 +80,11 @@ const AnimatedRoutes = () => {
             <Signup />
           </PublicRoute>
         } />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:id/:token" element={<ResetPassword />} />
+        <Route path="/reset-passowrd" element={<ResetPassword />} />
+        <Route path="/verify-email/:token" element={<VerifyEmailToken />} />
+        <Route path="/verify-email" element={<VerifyEmailToken />} />
 
         {/* Protected Routes */}
         <Route path="/" element={
@@ -87,7 +97,6 @@ const AnimatedRoutes = () => {
         <Route path="/creators" element={isAuthenticated ? <Creators /> : <CreatorsNav />} />
         <Route path="/about" element={isAuthenticated ? <About /> : <AboutNav />} />
         <Route path="/profile/:username" element={isAuthenticated ? <Profile /> : <ProfileDemo />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/c/:id" element={<CollectionDetailPage />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />
         <Route path="/user/:userId" element={<UserProfilePage />} />
@@ -99,6 +108,11 @@ const AnimatedRoutes = () => {
         <Route path="/notifications" element={
           <ProtectedRoute>
             <Notifications />
+          </ProtectedRoute>
+        } />
+        <Route path="/analytics" element={
+          <ProtectedRoute>
+            <Analytics />
           </ProtectedRoute>
         } />
 
@@ -114,28 +128,33 @@ const AnimatedRoutes = () => {
 const AppContent = () => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
-
-  // Standalone pages — bypass all layout (no sidebar, header, footer)
-  if (location.pathname === '/verify-email') {
-    return <VerifyEmail />;
-  }
+  const [showPreloader, setShowPreloader] = useState(!isAuthenticated);
 
   // Only show custom cursor on landing page, not on login/signup
-  const isAuthPage = ['/login', '/signup'].includes(location.pathname);
+  const isAuthPage = ['/login', '/signup', '/forgot-password'].includes(location.pathname)
+    || location.pathname.startsWith('/reset-password')
+    || location.pathname.startsWith('/reset-passowrd')
+    || location.pathname.startsWith('/verify-email');
   const showCustomCursor = !isAuthenticated && !isAuthPage;
+  const isLandingPage = location.pathname === '/landing';
 
   return (
-    <div className={`app${showCustomCursor ? ' landing-cursor-active' : ''}`}>
-      {showCustomCursor && <CustomCursor />}
-      {isAuthenticated && <Sidebar />}
-      <div className="app-content">
-        {!isAuthenticated && <Header />}
-        <main className="main-content">
-          <AnimatedRoutes />
-        </main>
-        {!isAuthenticated && <Footer />}
+    <SmoothScroll>
+      <div className={`app${showCustomCursor ? ' landing-cursor-active' : ''}`}>
+        {showPreloader && isLandingPage && (
+          <Preloader onComplete={() => setShowPreloader(false)} />
+        )}
+        {showCustomCursor && <CustomCursor />}
+        {isAuthenticated && <Sidebar />}
+        <div className="app-content">
+          {!isAuthenticated && <Header />}
+          <main className="main-content">
+            <AnimatedRoutes />
+          </main>
+          {!isAuthenticated && <Footer />}
+        </div>
       </div>
-    </div>
+    </SmoothScroll>
   );
 };
 

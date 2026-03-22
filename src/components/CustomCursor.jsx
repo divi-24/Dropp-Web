@@ -1,126 +1,112 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 const CustomCursor = () => {
-  const [pos, setPos] = useState({ x: -100, y: -100 });
-  const [variant, setVariant] = useState('default');
-  const [visible, setVisible] = useState(false);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-  const [inFooter, setInFooter] = useState(false);
+  const cursorX = useMotionValue(-100);
+  const cursorY = useMotionValue(-100);
+  const dotX = useMotionValue(-100);
+  const dotY = useMotionValue(-100);
+
+  const springConfig = { damping: 25, stiffness: 250, mass: 0.5 };
+  const ringX = useSpring(cursorX, springConfig);
+  const ringY = useSpring(cursorY, springConfig);
+
+  const [isHovering, setIsHovering] = useState(false);
+  const [isClicking, setIsClicking] = useState(false);
 
   useEffect(() => {
-    if (window.matchMedia('(hover: none)').matches || 'ontouchstart' in window) {
-      setIsTouchDevice(true);
-      return;
-    }
+    // Check for touch device
+    if ('ontouchstart' in window) return;
 
-    const onMouseMove = (e) => {
-      setPos({ x: e.clientX, y: e.clientY });
-      if (!visible) setVisible(true);
+    const move = (e) => {
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
+      dotX.set(e.clientX);
+      dotY.set(e.clientY);
     };
 
-    const onMouseOver = (e) => {
-      const heading = e.target.closest('h1, h2, h3, h4');
-      const img = e.target.closest('img, .hero-collage, .feature-image');
-      const btn = e.target.closest('a, button, input');
-      const footer = e.target.closest('footer');
-
-      setInFooter(!!footer);
-
-      if (heading) setVariant('heading');
-      else if (img) setVariant('image');
-      else if (btn) setVariant('button');
-      else setVariant('default');
+    const handleMouseOver = (e) => {
+      const target = e.target;
+      if (
+        target.tagName === 'A' ||
+        target.tagName === 'BUTTON' ||
+        target.closest('a') ||
+        target.closest('button') ||
+        target.closest('[role="button"]') ||
+        target.classList.contains('clickable') ||
+        getComputedStyle(target).cursor === 'pointer'
+      ) {
+        setIsHovering(true);
+      }
     };
 
-    const onLeave = () => setVisible(false);
-    const onEnter = () => setVisible(true);
+    const handleMouseOut = () => setIsHovering(false);
+    const handleMouseDown = () => setIsClicking(true);
+    const handleMouseUp = () => setIsClicking(false);
 
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseover', onMouseOver);
-    document.documentElement.addEventListener('mouseleave', onLeave);
-    document.documentElement.addEventListener('mouseenter', onEnter);
+    window.addEventListener('mousemove', move);
+    document.addEventListener('mouseover', handleMouseOver);
+    document.addEventListener('mouseout', handleMouseOut);
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseover', onMouseOver);
-      document.documentElement.removeEventListener('mouseleave', onLeave);
-      document.documentElement.removeEventListener('mouseenter', onEnter);
+      window.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseover', handleMouseOver);
+      document.removeEventListener('mouseout', handleMouseOut);
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [visible]);
+  }, [cursorX, cursorY, dotX, dotY]);
 
-  if (isTouchDevice) return null;
-
-  const sizes = {
-    default: 12,
-    heading: 80,
-    image: 48,
-    button: 36,
-  };
-
-  const size = sizes[variant];
-  const isFilled = variant === 'heading' || variant === 'button';
-
-  const fillColor = inFooter ? '#3887F8' : '#fff';
-  const ringColor = inFooter ? 'rgba(56, 135, 248, 0.7)' : 'rgba(255,255,255,0.5)';
-  const defaultRingColor = inFooter ? '1.5px solid rgba(56, 135, 248, 0.8)' : '1.5px solid #fff';
+  // Don't render on touch devices
+  if (typeof window !== 'undefined' && 'ontouchstart' in window) {
+    return null;
+  }
 
   return (
     <>
-      {/* Main cursor circle */}
+      {/* Outer ring — follows with spring */}
       <motion.div
-        animate={{
-          x: pos.x - size / 2,
-          y: pos.y - size / 2,
-          width: size,
-          height: size,
-          opacity: visible ? 1 : 0,
-        }}
-        transition={{
-          x: { type: 'spring', stiffness: 300, damping: 25, mass: 0.5 },
-          y: { type: 'spring', stiffness: 300, damping: 25, mass: 0.5 },
-          width: { type: 'spring', stiffness: 250, damping: 20 },
-          height: { type: 'spring', stiffness: 250, damping: 20 },
-          opacity: { duration: 0.15 },
-        }}
         style={{
           position: 'fixed',
           top: 0,
           left: 0,
+          width: isHovering ? 56 : 36,
+          height: isHovering ? 56 : 36,
           borderRadius: '50%',
-          border: isFilled ? 'none' : variant === 'default' ? defaultRingColor : `1px solid ${ringColor}`,
-          backgroundColor: isFilled ? fillColor : 'transparent',
+          border: `1.5px solid ${isHovering ? 'var(--color-accent)' : 'var(--color-dark-green)'}`,
           pointerEvents: 'none',
-          zIndex: 9999,
+          zIndex: 9998,
+          x: ringX,
+          y: ringY,
+          translateX: '-50%',
+          translateY: '-50%',
+          opacity: isHovering ? 0.8 : 0.35,
+          scale: isClicking ? 0.85 : 1,
           mixBlendMode: 'difference',
+          transition: 'width 0.3s, height 0.3s, border-color 0.3s, opacity 0.3s',
         }}
       />
 
-      {/* Center dot — only visible in default state */}
+      {/* Inner dot — follows mouse directly */}
       <motion.div
-        animate={{
-          x: pos.x - 3,
-          y: pos.y - 3,
-          opacity: visible && variant === 'default' ? 0.8 : 0,
-          scale: variant === 'default' ? 1 : 0,
-        }}
-        transition={{
-          x: { type: 'spring', stiffness: 600, damping: 30 },
-          y: { type: 'spring', stiffness: 600, damping: 30 },
-          opacity: { duration: 0.15 },
-          scale: { type: 'spring', stiffness: 400, damping: 20 },
-        }}
         style={{
           position: 'fixed',
           top: 0,
           left: 0,
-          width: 6,
-          height: 6,
+          width: isHovering ? 6 : 4,
+          height: isHovering ? 6 : 4,
           borderRadius: '50%',
-          backgroundColor: fillColor,
+          background: isHovering ? 'var(--color-accent)' : 'var(--color-dark-green)',
           pointerEvents: 'none',
-          zIndex: 10000,
-          mixBlendMode: 'difference',
+          zIndex: 9998,
+          x: dotX,
+          y: dotY,
+          translateX: '-50%',
+          translateY: '-50%',
+          scale: isClicking ? 2.5 : 1,
+          transition: 'width 0.2s, height 0.2s, background 0.2s',
         }}
       />
     </>

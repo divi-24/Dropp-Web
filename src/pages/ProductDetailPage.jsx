@@ -5,7 +5,7 @@ import {
     ArrowLeft, ChevronLeft, ChevronRight, Heart, Share2,
     ExternalLink, Calendar, MoreHorizontal, Flag, UserX,
     UserPlus, UserCheck, Package, Check, Layers, Grid3X3,
-    Link2
+    Link2, Pin, Sparkles
 } from 'lucide-react';
 import ProductService from '../core/services/ProductService';
 import UserService from '../core/services/UserService';
@@ -37,6 +37,8 @@ const ProductDetailPage = () => {
     const [copied, setCopied] = useState(false);
     const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success' });
     const [followModal, setFollowModal] = useState({ isOpen: false, type: 'followers' });
+    const [pinLoading, setPinLoading] = useState(false);
+    const [featureLoading, setFeatureLoading] = useState(false);
 
     const touchStartX = useRef(null);
     const optionsRef = useRef(null);
@@ -173,6 +175,42 @@ const ProductDetailPage = () => {
     const handleBlock = () => {
         setShowOptions(false);
         setSnackbar({ show: true, message: `@${creator?.username} has been blocked`, type: 'warning' });
+    };
+
+    const handlePinProduct = async () => {
+        if (!isOwner || pinLoading) return;
+        const nextPinned = !product?.isPinned;
+        setPinLoading(true);
+        setProduct((prev) => ({ ...prev, isPinned: nextPinned }));
+        try {
+            await ProductService.pinProduct(id);
+            setSnackbar({ show: true, message: nextPinned ? 'Product pinned' : 'Product unpinned', type: 'success' });
+        } catch (error) {
+            setProduct((prev) => ({ ...prev, isPinned: !nextPinned }));
+            setSnackbar({ show: true, message: 'Failed to update pin status', type: 'error' });
+        } finally {
+            setPinLoading(false);
+        }
+    };
+
+    const handleFeatureProduct = async () => {
+        if (!isOwner || featureLoading) return;
+        const nextFeatured = !product?.isFeatured;
+        setFeatureLoading(true);
+        setProduct((prev) => ({ ...prev, isFeatured: nextFeatured }));
+        try {
+            await ProductService.featureProduct(id);
+            setSnackbar({
+                show: true,
+                message: nextFeatured ? 'Product marked as featured' : 'Product unfeatured',
+                type: 'success'
+            });
+        } catch (error) {
+            setProduct((prev) => ({ ...prev, isFeatured: !nextFeatured }));
+            setSnackbar({ show: true, message: 'Failed to update featured status', type: 'error' });
+        } finally {
+            setFeatureLoading(false);
+        }
     };
 
     const mediaList = (product?.media || []).map(item => {
@@ -431,6 +469,27 @@ const ProductDetailPage = () => {
                                                 <ExternalLink size={16} />
                                                 Visit
                                             </a>
+                                        )}
+
+                                        {isOwner && (
+                                            <>
+                                                <button
+                                                    className={`pdp-action-btn${product?.isPinned ? ' pdp-liked' : ''}`}
+                                                    onClick={handlePinProduct}
+                                                    disabled={pinLoading}
+                                                >
+                                                    <Pin size={16} />
+                                                    {product?.isPinned ? 'Pinned' : 'Pin'}
+                                                </button>
+                                                <button
+                                                    className={`pdp-action-btn${product?.isFeatured ? ' pdp-liked' : ''}`}
+                                                    onClick={handleFeatureProduct}
+                                                    disabled={featureLoading}
+                                                >
+                                                    <Sparkles size={16} />
+                                                    {product?.isFeatured ? 'Featured' : 'Feature'}
+                                                </button>
+                                            </>
                                         )}
                                     </div>
 

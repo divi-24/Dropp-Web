@@ -1,0 +1,251 @@
+/* ═══════════════════════════════════════════
+   Mobile Touch Interactions
+   ═══════════════════════════════════════════ */
+
+/* Disable tap highlight color on all interactive elements */
+button,
+a,
+input,
+textarea,
+select,
+[role="button"],
+[role="tab"],
+[role="checkbox"],
+[role="radio"],
+[role="menuitem"],
+[role="link"],
+.nav-btn,
+.cta-btn,
+.tag-pill,
+.category-pill,
+.stat-card,
+.project-card,
+.value-card,
+.quiz-option,
+.section-view-all,
+.creator-card,
+.review-card {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch-friendly minimum hit target (44x44px for WCAG AA) */
+@media (max-width: 768px) {
+    button,
+    a,
+    [role="button"],
+    [role="tab"],
+    .nav-btn,
+    .cta-btn,
+    input[type="checkbox"],
+    input[type="radio"],
+    .category-pill {
+        min-height: 44px;
+        min-width: 44px;
+        padding-top: max(var(--spacing-sm), 44px - 1.5em);
+        padding-bottom: max(var(--spacing-sm), 44px - 1.5em);
+        padding-left: max(var(--spacing-sm), 44px - 1em);
+        padding-right: max(var(--spacing-sm), 44px - 1em);
+    }
+}
+
+/* Prevent zoom on input focus (iOS) */
+@media (max-width: 768px) {
+    input,
+    textarea,
+    select,
+    .quiz-input {
+        font-size: 16px !important;
+    }
+}
+
+/* Smooth scrolling for better mobile UX */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Reduce motion on mobile if user prefers */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Better link targeting for touch */
+@media (max-width: 768px) {
+    a {
+        padding: clamp(4px, 1vw, 8px);
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+}
+
+/* Touch-friendly form elements */
+@media (max-width: 768px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="search"],
+    textarea,
+    select {
+        padding: clamp(10px, 2.5vw, 14px) clamp(12px, 2vw, 16px);
+        font-size: 16px;
+        border-radius: clamp(10px, 2vw, 14px);
+        min-height: 44px;
+    }
+
+    textarea {
+        min-height: 100px;
+    }
+}
+
+/* Touch-friendly labels */
+@media (max-width: 768px) {
+    label {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: clamp(4px, 1vw, 8px);
+        cursor: pointer;
+        font-size: clamp(13px, 2vw, 14px);
+    }
+}
+
+/* Prevent double-tap zoom delay on double-click */
+@media (max-width: 768px) {
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    [role="button"] {
+        touch-action: manipulation;
+    }
+}
+
+/* Responsive touch interactions for cards */
+@media (max-width: 768px) {
+    .stat-card,
+    .project-card,
+    .value-card,
+    .creator-card,
+    .review-card {
+        /* Add padding to increase touch target */
+        padding: clamp(12px, 2vw, 20px);
+    }
+
+    .stat-card:active,
+    .project-card:active,
+    .value-card:active,
+    .creator-card:active,
+    .review-card:active {
+        opacity: 0.85;
+    }
+}
+
+/* Better scroll performance for mobile */
+@media (max-width: 768px) {
+    .categories-scroller,
+    .creators-scroller,
+    [style*="overflow-x: auto"],
+    [style*="overflow-x:auto"] {
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+    }
+
+    .categories-scroller > *,
+    .creators-scroller > * {
+        scroll-snap-align: start;
+    }
+}
+
+/* Remove hover styles on touch devices for cleaner mobile UI */
+@media (hover: none) {
+    button:hover,
+    a:hover,
+    .nav-btn:hover,
+    .cta-btn:hover,
+    .category-pill:hover,
+    .stat-card:hover,
+    .project-card:hover,
+    .value-card:hover {
+        transform: none;
+    }
+
+    button:hover,
+    a:hover,
+    .nav-btn:hover,
+    .cta-btn:hover,
+    .category-pill:hover,
+    .stat-card:hover,
+    .project-card:hover,
+    .value-card:hover {
+        box-shadow: none;
+    }
+}
+
+/* Touch-only active states (not hover) */
+@media (hover: none) {
+    button:active,
+    a:active,
+    .nav-btn:active,
+    .cta-btn:active,
+    .category-pill:active,
+    .stat-card:active,
+    .project-card:active,
+    .value-card:active,
+    .quiz-option:active {
+        opacity: 0.8;
+        transform: scale(0.95);
+    }
+}
+
+/* Preserve pointer-events for interactive elements */
+@media (max-width: 768px) {
+    .clickable,
+    .interactive {
+        pointer-events: auto !important;
+    }
+}
+
+/* Better text selection on mobile */
+@media (max-width: 768px) {
+    body {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    input,
+    textarea,
+    [contenteditable="true"] {
+        user-select: text;
+        -webkit-user-select: text;
+    }
+}
+
+/* Viewport fixes for mobile */
+@media (max-width: 768px) {
+    body {
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    html {
+        width: 100%;
+        overflow-x: hidden;
+    }
+}
+
+/* Prevent unwanted text zoom on orientation change */
+@media (max-width: 768px) {
+    * {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+}

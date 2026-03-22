@@ -58,19 +58,6 @@ class UserService {
     }
 
     /**
-     * Verify token from email link
-     * @param {string} token
-     * @returns {Promise<any>}
-     */
-    async verifyToken(token) {
-        try {
-            return await UserRepository.verifyToken(token);
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    /**
      * Delete user account
      * @returns {Promise<any>}
      */
@@ -201,12 +188,20 @@ class UserService {
         }
     }
 
-    async searchUsers(query) {
-        try {
-            return await UserRepository.searchUsers(query);
-        } catch (error) {
-            throw error;
-        }
+    async verifyEmailToken(token) {
+        return UserRepository.verifyEmailToken(token);
+    }
+
+    async getAnalytics() {
+        return UserRepository.getAnalytics();
+    }
+
+    async requestResetPassword(email) {
+        return UserRepository.requestResetPassword(email);
+    }
+
+    async resetPassword(id, token, password) {
+        return UserRepository.resetPassword(id, token, password);
     }
 }
 

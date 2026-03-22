@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { API_CONFIG, STORAGE_KEYS } from './apiConfig';
 
+// Create axios instance
 const apiClient = axios.create({
     baseURL: API_CONFIG.BASE_URL,
     timeout: API_CONFIG.TIMEOUT,

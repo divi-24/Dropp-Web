@@ -121,6 +121,16 @@ class ProductRepository {
         const response = await apiClient.delete(`${API_CONFIG.ENDPOINTS.DELETE_PRODUCT_MEDIA}/${mediaId}/pId/${productId}/delete`);
         return response.data;
     }
+
+    async pinProduct(id) {
+        const response = await apiClient.patch(`${API_CONFIG.ENDPOINTS.PIN_PRODUCT}/${id}`);
+        return response.data;
+    }
+
+    async featureProduct(id) {
+        const response = await apiClient.post(`${API_CONFIG.ENDPOINTS.FEATURE_PRODUCT}/${id}/feature`);
+        return response.data;
+    }
 }
 
 export default new ProductRepository();

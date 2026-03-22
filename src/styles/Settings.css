@@ -232,6 +232,90 @@
     color: #ef4444;
 }
 
+.verification-status.verified {
+    color: #059669;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.verification-status.verified .verified-tick {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: #059669;
+}
+
+.email-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.email-title-row h3 {
+    margin-bottom: 0;
+}
+
+.settings-email-value {
+    word-break: break-all;
+}
+
+.settings-item-email .settings-item-content h3 {
+    margin-bottom: 0;
+}
+
+/* Verified badge — pill with tick (editorial / trust signal) */
+.email-verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.65rem 0.2rem 0.35rem;
+    border-radius: 9999px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #047857;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(5, 150, 105, 0.08));
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    box-shadow: 0 1px 2px rgba(5, 150, 105, 0.08);
+}
+
+.email-verified-badge-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #10b981, #059669);
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.email-verified-badge-icon svg {
+    display: block;
+}
+
+.email-verified-badge-text {
+    padding-right: 0.15rem;
+}
+
+[data-theme='dark'] .email-verified-badge {
+    color: #34d399;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(5, 150, 105, 0.08));
+    border-color: rgba(52, 211, 153, 0.35);
+}
+
+[data-theme='dark'] .verification-status.verified {
+    color: #34d399;
+}
+
+[data-theme='dark'] .verification-status.verified .verified-tick {
+    color: #34d399;
+}
+
 .verify-btn {
     background: transparent;
     border: 1px solid var(--accent-blue);

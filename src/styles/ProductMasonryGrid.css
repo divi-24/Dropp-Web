@@ -1,13 +1,13 @@
 /* Pinterest-Style Masonry Grid (CSS Columns) */
 .pin-masonry {
     column-count: 5;
-    column-gap: 16px;
+    column-gap: clamp(8px, 2vw, 16px);
     width: 100%;
 }
 
 .pin-masonry-item {
     break-inside: avoid;
-    margin-bottom: 16px;
+    margin-bottom: clamp(8px, 2vw, 16px);
 }
 
 /* Product Board Preview - single image, natural height */
@@ -32,7 +32,8 @@
     transition: transform 0.2s ease;
 }
 
-.pin-masonry-item .pinterest-board:hover {
+.pin-masonry-item .pinterest-board:hover,
+.pin-masonry-item .pinterest-board:active {
     transform: translateY(-2px);
 }
 
@@ -40,30 +41,54 @@
 @media (max-width: 1400px) {
     .pin-masonry {
         column-count: 4;
+        column-gap: clamp(8px, 2vw, 14px);
     }
 }
 
 @media (max-width: 1100px) {
     .pin-masonry {
         column-count: 3;
+        column-gap: clamp(8px, 2vw, 12px);
     }
 }
 
 @media (max-width: 768px) {
     .pin-masonry {
         column-count: 2;
-        column-gap: 12px;
+        column-gap: clamp(8px, 2vw, 12px);
     }
 
     .pin-masonry-item {
-        margin-bottom: 12px;
+        margin-bottom: clamp(8px, 2vw, 12px);
+    }
+}
+
+@media (max-width: 640px) {
+    .pin-masonry {
+        column-count: 2;
+        column-gap: clamp(6px, 2vw, 8px);
+    }
+
+    .pin-masonry-item {
+        margin-bottom: clamp(6px, 1.5vw, 8px);
     }
 }
 
 @media (max-width: 480px) {
     .pin-masonry {
-        column-count: 2;
-        column-gap: 8px;
+        column-count: 1;
+        column-gap: 0;
+    }
+
+    .pin-masonry-item {
+        margin-bottom: clamp(8px, 2vw, 12px);
+    }
+}
+
+@media (max-width: 320px) {
+    .pin-masonry {
+        column-count: 1;
+        column-gap: 0;
     }
 
     .pin-masonry-item {
@@ -74,14 +99,14 @@
 /* Also support pinterest-grid product-pinterest-grid for collection detail pages */
 .product-pinterest-grid {
     column-count: 4;
-    column-gap: 16px;
+    column-gap: clamp(8px, 2vw, 16px);
     display: block;
     grid-template-columns: unset;
 }
 
 .product-pinterest-grid > * {
     break-inside: avoid;
-    margin-bottom: 16px;
+    margin-bottom: clamp(8px, 2vw, 16px);
 }
 
 .product-pinterest-grid .board-preview.product-board-preview {
@@ -103,19 +128,34 @@
 @media (max-width: 1100px) {
     .product-pinterest-grid {
         column-count: 3;
+        column-gap: clamp(8px, 2vw, 12px);
     }
 }
 
 @media (max-width: 768px) {
     .product-pinterest-grid {
         column-count: 2;
-        column-gap: 12px;
+        column-gap: clamp(8px, 2vw, 12px);
+    }
+}
+
+@media (max-width: 640px) {
+    .product-pinterest-grid {
+        column-count: 2;
+        column-gap: clamp(6px, 2vw, 8px);
     }
 }
 
 @media (max-width: 480px) {
     .product-pinterest-grid {
-        column-count: 2;
-        column-gap: 8px;
+        column-count: 1;
+        column-gap: 0;
+    }
+}
+
+@media (max-width: 320px) {
+    .product-pinterest-grid {
+        column-count: 1;
+        column-gap: 0;
     }
 }
