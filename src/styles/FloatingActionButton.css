@@ -75,14 +75,10 @@
     }
 }
 
-/* Mobile positioning - above bottom nav */
+/* Mobile: create lives in center bottom nav */
 @media (max-width: 768px) {
     .fab {
-        bottom: calc(80px + 1rem);
-        /* Above bottom nav (70px height + padding) */
-        right: 1rem;
-        width: 52px;
-        height: 52px;
+        display: none !important;
     }
 }
 

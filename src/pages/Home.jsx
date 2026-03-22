@@ -1,64 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Loader, TrendingUp, Users, Package, Star, Sparkles, ArrowUpRight, Grid } from 'lucide-react';
+import { Search, X, Loader, Sparkles, Grid, Bell, User } from 'lucide-react';
 import ProductMasonryGrid from '../components/ProductMasonryGrid';
+import HomeAnalyticsMarquee from '../components/HomeAnalyticsMarquee';
 import { ShimmerCollectionGrid } from '../components/Shimmer';
 import FloatingActionButton from '../components/FloatingActionButton';
 import ProductService from '../core/services/ProductService';
+import UserService from '../core/services/UserService';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotifications } from '../contexts/NotificationContext';
+import { API_CONFIG } from '../core/config/apiConfig';
 import { categories } from '../data/mockData';
 import '../styles/Home.css';
 import '../styles/Profile.css';
 
-/* ─── Animated Counter ─── */
-const Counter = ({ end, duration = 1.5, suffix = '' }) => {
-    const [count, setCount] = useState(0);
-    useEffect(() => {
-        let start = 0;
-        const step = end / (duration * 60);
-        const timer = setInterval(() => {
-            start += step;
-            if (start >= end) { setCount(end); clearInterval(timer); }
-            else setCount(Math.floor(start));
-        }, 1000 / 60);
-        return () => clearInterval(timer);
-    }, [end, duration]);
-    return <>{count.toLocaleString()}{suffix}</>;
-};
-
-/* ─── Stat Card ─── */
-const StatCard = ({ icon: Icon, label, value, suffix, color, delay }) => (
-    <motion.div
-        className="stat-card"
-        style={{ '--card-accent': color }}
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
-    >
-        <div className="stat-card-icon">
-            <Icon size={20} />
-        </div>
-        <div className="stat-card-body">
-            <span className="stat-card-value">
-                <Counter end={value} suffix={suffix} />
-            </span>
-            <span className="stat-card-label">{label}</span>
-        </div>
-        <div className="stat-card-glow" />
-    </motion.div>
-);
-
-/* ─── Shimmer / Skeleton Card ─── */
-const SkeletonCard = () => (
-    <div className="skeleton-card">
-        <div className="skeleton-img" />
-        <div className="skeleton-line short" />
-        <div className="skeleton-line" />
-    </div>
-);
-
 const Home = () => {
     const { user } = useAuth();
+    const { unreadCount } = useNotifications();
     const [activeCategory, setActiveCategory] = useState('All');
     const [products, setProducts] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
@@ -66,7 +25,17 @@ const Home = () => {
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
+    const [analytics, setAnalytics] = useState(null);
+    const [analyticsLoading, setAnalyticsLoading] = useState(true);
+
     const firstName = user?.fullName?.split(' ')[0] || user?.username || 'Creator';
+
+    const avatarUrl = (() => {
+        const url = user?.profileImageUrl;
+        if (!url) return null;
+        if (url.startsWith('http')) return url;
+        return API_CONFIG.BASE_URL + url;
+    })();
 
     useEffect(() => {
         if (!isSearching) fetchProducts();
@@ -79,6 +48,22 @@ const Home = () => {
         }, 500);
         return () => clearTimeout(t);
     }, [searchQuery]);
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                setAnalyticsLoading(true);
+                const res = await UserService.getAnalytics();
+                if (!cancelled) setAnalytics(res?.analytics || null);
+            } catch {
+                if (!cancelled) setAnalytics(null);
+            } finally {
+                if (!cancelled) setAnalyticsLoading(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
 
     const handleSearch = async (query) => {
         if (!query.trim()) return;
@@ -110,6 +95,30 @@ const Home = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
         >
+            <div className="home-mobile-top-bar">
+                <div className="home-mobile-top-spacer" aria-hidden="true" />
+                <Link to="/" className="home-mobile-brand home-mobile-brand--wordmark" aria-label="Dropp home">
+                    <span className="home-mobile-dropp-wordmark" aria-hidden="true">
+                        {'DROPP'.split('').map((char, i) => (
+                            <span key={i} className="home-mobile-dropp-char">{char}</span>
+                        ))}
+                    </span>
+                    <span className="home-mobile-dropp-tagline">curate · share · earn</span>
+                </Link>
+                <div className="home-mobile-top-actions">
+                    <Link to="/notifications" className="home-mobile-notify" aria-label="Notifications">
+                        <span className="home-mobile-notify-inner">
+                            <Bell size={20} strokeWidth={2} />
+                        </span>
+                        {unreadCount > 0 && (
+                            <span className="home-mobile-notify-badge">
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                        )}
+                    </Link>
+                </div>
+            </div>
+
             {/* ── Welcome Banner ── */}
             <motion.div
                 className="welcome-banner"
@@ -117,15 +126,24 @@ const Home = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
-                <div className="welcome-banner-left">
-                    <div className="welcome-badge">
-                        <Sparkles size={12} />
-                        <span>Creator Dashboard</span>
+                <div className="welcome-banner-main">
+                    {avatarUrl ? (
+                        <img className="welcome-avatar" src={avatarUrl} alt="" />
+                    ) : (
+                        <div className="welcome-avatar-placeholder" aria-hidden>
+                            <User size={32} strokeWidth={1.5} />
+                        </div>
+                    )}
+                    <div className="welcome-banner-left">
+                        <div className="welcome-badge">
+                            <Sparkles size={12} />
+                            <span>Creator Dashboard</span>
+                        </div>
+                        <h1 className="welcome-title">
+                            Hey, <span className="welcome-name">{firstName}</span> 👋
+                        </h1>
+                        <p className="welcome-sub">Your curated drops are waiting to go viral.</p>
                     </div>
-                    <h1 className="welcome-title">
-                        Hey, <span className="welcome-name">{firstName}</span> 👋
-                    </h1>
-                    <p className="welcome-sub">Your curated drops are waiting to go viral.</p>
                 </div>
                 <div className="welcome-banner-right">
                     <motion.div
@@ -146,13 +164,11 @@ const Home = () => {
                 </div>
             </motion.div>
 
-            {/* ── Stats Row ── */}
-            <div className="stats-row">
-                <StatCard icon={Package}   label="Total Products"   value={products.length} suffix=""   color="#F0057A" delay={0.05} />
-                <StatCard icon={TrendingUp} label="Trending Today"   value={Math.max(1, Math.floor(products.length * 0.3))} suffix=""   color="#7C3AED" delay={0.1} />
-                <StatCard icon={Users}     label="Creators Live"    value={142}  suffix="+"   color="#4F46E5" delay={0.15} />
-                <StatCard icon={Star}      label="Avg. Rating"      value={4.8}  suffix="★"   color="#F59E0B" delay={0.2} />
-            </div>
+            <HomeAnalyticsMarquee
+                analytics={analytics}
+                loading={analyticsLoading}
+                feedProductCount={products.length}
+            />
 
             {/* ── Search + Filters ── */}
             <div className="home-controls">
@@ -200,19 +216,6 @@ const Home = () => {
                 )}
             </div>
 
-            {/* ── Section Header ── */}
-            {!isSearching && (
-                <div className="section-header">
-                    <div className="section-header-left">
-                        <span className="section-tag">Feed</span>
-                        <h2 className="section-title">Discover <span className="gradient-text">Products</span></h2>
-                    </div>
-                    <button className="section-view-all">
-                        View All <ArrowUpRight size={14} />
-                    </button>
-                </div>
-            )}
-
             {isSearching && (
                 <div className="search-results-header">
                     <span className="search-results-label">
@@ -221,7 +224,6 @@ const Home = () => {
                 </div>
             )}
 
-            {/* ── Product Grid ── */}
             <div className="home-content">
                 {loading || (isSearching && searchLoading) ? (
                     <ShimmerCollectionGrid count={8} />

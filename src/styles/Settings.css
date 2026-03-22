@@ -55,6 +55,67 @@
     border-bottom: none;
 }
 
+.settings-item-appearance {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+}
+
+.settings-item-appearance:hover {
+    background: transparent;
+}
+
+.settings-appearance-block {
+    width: 100%;
+}
+
+.settings-appearance-modes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.settings-appearance-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.75rem 0.35rem;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.settings-appearance-btn:hover {
+    border-color: rgba(240, 5, 122, 0.35);
+    color: var(--text-primary);
+}
+
+.settings-appearance-btn.active {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    box-shadow: 0 2px 14px rgba(240, 5, 122, 0.18);
+}
+
+.settings-appearance-btn:active {
+    transform: scale(0.98);
+}
+
 .settings-item:hover {
     background: var(--bg-secondary);
     border-radius: var(--radius-md);

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Share2, MoreHorizontal, Trash2, Link2, Copy, Check, Heart, Edit2, Lock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Share2, MoreHorizontal, Trash2, Link2, Copy, Check, Heart, Edit2, Lock, Pin } from 'lucide-react';
 import AddProductModal from './AddProductModal';
 import { API_CONFIG } from '../core/config/apiConfig';
 import PLACEHOLDER_IMAGE from '../utils/placeholder';
@@ -21,6 +21,12 @@ const ProductCard = ({ product, onDelete, isCollectionOwner = false }) => {
     );
     const [likeCount, setLikeCount] = useState(product.likes?.length || 0);
     const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success' });
+    const [isPinned, setIsPinned] = useState(!!product.isPinned);
+    const [pinLoading, setPinLoading] = useState(false);
+
+    useEffect(() => {
+        setIsPinned(!!product.isPinned);
+    }, [product._id, product.id, product.isPinned]);
 
     const productId = product._id || product.id;
     const creator = product.createdBy;
@@ -29,8 +35,35 @@ const ProductCard = ({ product, onDelete, isCollectionOwner = false }) => {
     const canManageProduct = isOwner || isCollectionOwner;
 
     const handleCardClick = (e) => {
-        if (e.target.closest('.board-actions') || e.target.closest('.share-popup') || e.target.closest('.board-menu-container')) return;
+        if (
+            e.target.closest('.board-actions')
+            || e.target.closest('.share-popup')
+            || e.target.closest('.board-menu-container')
+            || e.target.closest('.product-card-pin-btn')
+        ) return;
         navigate(`/product/${productId}`);
+    };
+
+    const handlePinClick = async (e) => {
+        e.stopPropagation();
+        if (!isOwner || pinLoading) return;
+        const nextPinned = !isPinned;
+        setIsPinned(nextPinned);
+        setPinLoading(true);
+        try {
+            await ProductService.pinProduct(productId);
+            setSnackbar({
+                show: true,
+                message: nextPinned ? 'Product pinned' : 'Product unpinned',
+                type: 'success',
+            });
+        } catch (error) {
+            console.error('Failed to pin product:', error);
+            setIsPinned(!nextPinned);
+            setSnackbar({ show: true, message: 'Failed to update pin', type: 'error' });
+        } finally {
+            setPinLoading(false);
+        }
     };
 
     const handleCreatorClick = (e) => {
@@ -151,6 +184,17 @@ const ProductCard = ({ product, onDelete, isCollectionOwner = false }) => {
                             alt={product.name || product.title}
                             onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
                         />
+                        {isOwner && (
+                            <button
+                                type="button"
+                                className={`board-action-btn product-card-pin-btn ${isPinned ? 'is-pinned' : ''}`}
+                                onClick={handlePinClick}
+                                disabled={pinLoading}
+                                title={isPinned ? 'Unpin product' : 'Pin product'}
+                            >
+                                <Pin size={16} strokeWidth={2.25} fill={isPinned ? 'currentColor' : 'none'} />
+                            </button>
+                        )}
                     </div>
 
                     {product.isPrivate && (
@@ -269,13 +313,12 @@ const ProductCard = ({ product, onDelete, isCollectionOwner = false }) => {
                 </div>
             </div>
 
-            {snackbar.show && (
-                <Snackbar
-                    message={snackbar.message}
-                    type={snackbar.type}
-                    onClose={() => setSnackbar({ ...snackbar, show: false })}
-                />
-            )}
+            <Snackbar
+                isVisible={snackbar.show}
+                message={snackbar.message}
+                type={snackbar.type}
+                onClose={() => setSnackbar((s) => ({ ...s, show: false }))}
+            />
 
             {/* Edit Modal */}
             <AddProductModal

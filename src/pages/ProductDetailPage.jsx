@@ -454,6 +454,17 @@ const ProductDetailPage = () => {
                                             {isLiked ? 'Liked' : 'Like'}
                                         </button>
 
+                                        {isOwner && (
+                                            <button
+                                                className={`pdp-action-btn${product?.isPinned ? ' pdp-liked' : ''}`}
+                                                onClick={handlePinProduct}
+                                                disabled={pinLoading}
+                                            >
+                                                <Pin size={16} />
+                                                {product?.isPinned ? 'Pinned' : 'Pin'}
+                                            </button>
+                                        )}
+
                                         <button className="pdp-action-btn" onClick={handleShare}>
                                             {copied ? <Check size={16} /> : <Share2 size={16} />}
                                             {copied ? 'Copied!' : 'Share'}
@@ -472,24 +483,14 @@ const ProductDetailPage = () => {
                                         )}
 
                                         {isOwner && (
-                                            <>
-                                                <button
-                                                    className={`pdp-action-btn${product?.isPinned ? ' pdp-liked' : ''}`}
-                                                    onClick={handlePinProduct}
-                                                    disabled={pinLoading}
-                                                >
-                                                    <Pin size={16} />
-                                                    {product?.isPinned ? 'Pinned' : 'Pin'}
-                                                </button>
-                                                <button
-                                                    className={`pdp-action-btn${product?.isFeatured ? ' pdp-liked' : ''}`}
-                                                    onClick={handleFeatureProduct}
-                                                    disabled={featureLoading}
-                                                >
-                                                    <Sparkles size={16} />
-                                                    {product?.isFeatured ? 'Featured' : 'Feature'}
-                                                </button>
-                                            </>
+                                            <button
+                                                className={`pdp-action-btn${product?.isFeatured ? ' pdp-liked' : ''}`}
+                                                onClick={handleFeatureProduct}
+                                                disabled={featureLoading}
+                                            >
+                                                <Sparkles size={16} />
+                                                {product?.isFeatured ? 'Featured' : 'Feature'}
+                                            </button>
                                         )}
                                     </div>
 

@@ -530,11 +530,6 @@ const CollectionDetailPage = () => {
                                         {isLiked ? 'Liked' : 'Like'}
                                     </button>
 
-                                    <button className="pdp-action-btn" onClick={handleShare}>
-                                        {copied ? <Check size={16} /> : <Share2 size={16} />}
-                                        {copied ? 'Copied!' : 'Share'}
-                                    </button>
-
                                     {isOwner && (
                                         <button
                                             className={`pdp-action-btn${collection?.isPinned ? ' pdp-liked' : ''}`}
@@ -545,6 +540,11 @@ const CollectionDetailPage = () => {
                                             {collection?.isPinned ? 'Pinned' : 'Pin'}
                                         </button>
                                     )}
+
+                                    <button className="pdp-action-btn" onClick={handleShare}>
+                                        {copied ? <Check size={16} /> : <Share2 size={16} />}
+                                        {copied ? 'Copied!' : 'Share'}
+                                    </button>
 
                                     {isOwner && (
                                         <div className="pdp-options-wrap">

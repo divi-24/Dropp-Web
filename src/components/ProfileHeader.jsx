@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
     User, MessageCircle, MoreHorizontal, MapPin,
-    Link as LinkIcon, ArrowLeft, Share2, Ban, Flag
+    Link as LinkIcon, ArrowLeft, Share2, Ban, Flag,
+    Settings, BarChart3,
 } from 'lucide-react';
 import FollowListModal from './FollowListModal';
 import '../styles/Profile.css';
@@ -38,7 +39,18 @@ const ProfileHeader = ({
     };
 
     return (
-        <div className="profile-header">
+        <div className={`profile-header${isOwnProfile ? ' profile-header--own' : ''}`}>
+            {isOwnProfile && (
+                <>
+                    <Link to="/settings" className="profile-corner-btn profile-corner-btn--left" aria-label="Settings" title="Settings">
+                        <Settings size={22} strokeWidth={2} />
+                    </Link>
+                    <Link to="/analytics" className="profile-corner-btn profile-corner-btn--right" aria-label="Analytics" title="Analytics">
+                        <BarChart3 size={22} strokeWidth={2} />
+                    </Link>
+                </>
+            )}
+
             {/* Back navigation for visitor view */}
             {!isOwnProfile && (
                 <button className="profile-back-btn" onClick={() => navigate(-1)}>

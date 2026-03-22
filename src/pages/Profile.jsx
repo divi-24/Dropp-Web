@@ -5,7 +5,6 @@ import ProfileHeader from '../components/ProfileHeader';
 import ProfileTabs from '../components/ProfileTabs';
 import FloatingActionButton from '../components/FloatingActionButton';
 import UserService from '../core/services/UserService';
-import { useData } from '../contexts/DataContext';
 import '../styles/Profile.css';
 import { API_CONFIG } from '../core/config/apiConfig';
 import CollectionService from '../core/services/CollectionService';

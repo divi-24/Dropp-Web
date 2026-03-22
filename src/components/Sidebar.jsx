@@ -11,22 +11,23 @@ import {
     Bell,
     Moon,
     Sun,
-    BarChart3
+    BarChart3,
+    Plus,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotifications } from '../contexts/NotificationContext';
+import CreateCollectionModal from './CreateCollectionModal';
 import '../styles/Sidebar.css';
 
 const Sidebar = () => {
     const [isExpanded, setIsExpanded] = useState(true);
+    const [createModalOpen, setCreateModalOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
     const { isAuthenticated, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const { unreadCount } = useNotifications();
-
-    console.log('Sidebar unreadCount:', unreadCount);
 
     const mainNavItems = [
         { path: '/', label: 'Home', icon: Home },
@@ -60,12 +61,6 @@ const Sidebar = () => {
     if (!isAuthenticated) {
         return null;
     }
-
-    // All navigation items for mobile bottom bar
-    const allMobileNavItems = [
-        ...mainNavItems,
-        ...userNavItems
-    ];
 
     return (
         <>
@@ -167,24 +162,63 @@ const Sidebar = () => {
                 </div>
             </aside>
 
-            {/* Mobile Bottom Navigation Bar */}
+            {/* Mobile: Home · Explore · Create · Creators · Profile (notifications on Home header) */}
             <nav className="bottom-nav">
-                {allMobileNavItems.slice(0, 5).map(({ path, label, icon: Icon }) => (
-                    <Link
-                        key={path}
-                        to={path}
-                        className={`bottom-nav-item ${isActive(path) ? 'active' : ''}`}
-                    >
-                        <div className="bottom-nav-icon-wrapper">
-                            <Icon size={22} />
-                            {path === '/notifications' && unreadCount > 0 && (
-                                <div className="bottom-nav-badge">{unreadCount}</div>
-                            )}
-                        </div>
-                        <span className="bottom-nav-label">{label}</span>
-                    </Link>
-                ))}
+                <Link
+                    to="/"
+                    className={`bottom-nav-item ${isActive('/') ? 'active' : ''}`}
+                >
+                    <div className="bottom-nav-icon-wrapper">
+                        <Home size={22} />
+                    </div>
+                    <span className="bottom-nav-label">Home</span>
+                </Link>
+                <Link
+                    to="/explore"
+                    className={`bottom-nav-item ${isActive('/explore') ? 'active' : ''}`}
+                >
+                    <div className="bottom-nav-icon-wrapper">
+                        <Compass size={22} />
+                    </div>
+                    <span className="bottom-nav-label">Explore</span>
+                </Link>
+                <button
+                    type="button"
+                    className="bottom-nav-item bottom-nav-create"
+                    onClick={() => setCreateModalOpen(true)}
+                    aria-label="Create collection"
+                >
+                    <div className="bottom-nav-icon-wrapper bottom-nav-create-icon-wrap">
+                        <span className="bottom-nav-create-pill">
+                            <Plus size={22} strokeWidth={2.5} />
+                        </span>
+                    </div>
+                    <span className="bottom-nav-label">Create</span>
+                </button>
+                <Link
+                    to="/creators"
+                    className={`bottom-nav-item ${isActive('/creators') ? 'active' : ''}`}
+                >
+                    <div className="bottom-nav-icon-wrapper">
+                        <Users size={22} />
+                    </div>
+                    <span className="bottom-nav-label">Creators</span>
+                </Link>
+                <Link
+                    to="/profile/me"
+                    className={`bottom-nav-item ${location.pathname.startsWith('/profile') ? 'active' : ''}`}
+                >
+                    <div className="bottom-nav-icon-wrapper">
+                        <User size={22} />
+                    </div>
+                    <span className="bottom-nav-label">Profile</span>
+                </Link>
             </nav>
+
+            <CreateCollectionModal
+                isOpen={createModalOpen}
+                onClose={() => setCreateModalOpen(false)}
+            />
         </>
     );
 };

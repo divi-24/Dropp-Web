@@ -74,8 +74,15 @@
 }
 
 /* ─── Content ─── */
+/* Tighter rhythm between category pills and grid (esp. mobile) */
+.explore-page .category-filters {
+    margin-top: 0.15rem;
+    margin-bottom: 0.65rem;
+}
+
 .explore-content {
     min-height: 400px;
+    margin-top: 0;
 }
 
 .search-results-title {
@@ -137,8 +144,22 @@
         padding: 20px 16px 40px;
     }
 
+    .explore-header {
+        margin-bottom: 1.1rem;
+    }
+
     .explore-title {
         font-size: 32px;
+        margin-bottom: 14px;
+    }
+
+    .explore-page .category-filters {
+        margin-top: 0;
+        margin-bottom: 0.35rem;
+    }
+
+    .explore-content {
+        padding-top: 0.2rem;
     }
 
     .pinterest-grid {

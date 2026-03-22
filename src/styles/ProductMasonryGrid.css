@@ -3,6 +3,9 @@
     column-count: 5;
     column-gap: clamp(8px, 2vw, 16px);
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .pin-masonry-item {
@@ -102,6 +105,9 @@
     column-gap: clamp(8px, 2vw, 16px);
     display: block;
     grid-template-columns: unset;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .product-pinterest-grid > * {

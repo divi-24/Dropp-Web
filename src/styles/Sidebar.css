@@ -223,13 +223,13 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 72px;
+    min-height: 72px;
     background: var(--color-beige);
     border-top: 1px solid rgba(0, 77, 44, 0.06);
     z-index: 50;
     justify-content: space-around;
     align-items: center;
-    padding: 0 8px;
+    padding: 0 6px;
     padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -277,6 +277,46 @@
     font-family: var(--font-sans);
     font-size: 10px;
     font-weight: 500;
+}
+
+/* Create — same vertical alignment as other tabs */
+.bottom-nav-item.bottom-nav-create {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 10px;
+    color: var(--color-accent);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item.bottom-nav-create .bottom-nav-label {
+    font-weight: 600;
+}
+
+.bottom-nav-create-icon-wrap {
+    width: auto;
+    height: auto;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bottom-nav-create-pill {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent-gradient, linear-gradient(135deg, #f0057a, #ff80c0));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 14px rgba(240, 5, 122, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bottom-nav-item.bottom-nav-create:active .bottom-nav-create-pill {
+    transform: scale(0.94);
 }
 
 /* ─── Responsive ─── */

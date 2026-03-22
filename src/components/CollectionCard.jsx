@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Share2, MoreHorizontal, Edit, Trash2, Link2, Copy, Check, Heart, Lock } from 'lucide-react';
+import { Share2, MoreHorizontal, Edit, Trash2, Link2, Copy, Check, Heart, Lock, Pin } from 'lucide-react';
 import { API_CONFIG } from '../core/config/apiConfig';
 import PLACEHOLDER_IMAGE from '../utils/placeholder';
+import CollectionService from '../core/services/CollectionService';
+import Snackbar from './Snackbar';
 import '../styles/Profile.css';
 
 const CollectionCard = ({
@@ -10,7 +12,8 @@ const CollectionCard = ({
     onShare,
     onEdit,
     onDelete,
-    isOwner = false
+    isOwner = false,
+    onUpdateCollection,
 }) => {
     const navigate = useNavigate();
     const [openMenu, setOpenMenu] = useState(false);
@@ -18,13 +21,47 @@ const CollectionCard = ({
     const [copied, setCopied] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(collection.likes?.length || 0);
+    const [isPinned, setIsPinned] = useState(!!collection.isPinned);
+    const [pinLoading, setPinLoading] = useState(false);
+    const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success' });
+
+    useEffect(() => {
+        setIsPinned(!!collection.isPinned);
+    }, [collection._id, collection.id, collection.isPinned]);
 
     const collectionId = collection._id || collection.id;
     const creator = collection.createdBy;
 
     const handleCardClick = (e) => {
-        if (e.target.closest('.board-actions') || e.target.closest('.share-popup')) return;
+        if (
+            e.target.closest('.board-actions')
+            || e.target.closest('.share-popup')
+            || e.target.closest('.board-card-footer-actions')
+        ) return;
         navigate(`/c/${collectionId}`);
+    };
+
+    const handlePinClick = async (e) => {
+        e.stopPropagation();
+        if (!isOwner || pinLoading) return;
+        const nextPinned = !isPinned;
+        setIsPinned(nextPinned);
+        setPinLoading(true);
+        try {
+            await CollectionService.pinCollection(collectionId);
+            onUpdateCollection?.(collectionId, { isPinned: nextPinned });
+            setSnackbar({
+                show: true,
+                message: nextPinned ? 'Collection pinned' : 'Collection unpinned',
+                type: 'success',
+            });
+        } catch (err) {
+            console.error('Failed to pin collection:', err);
+            setIsPinned(!nextPinned);
+            setSnackbar({ show: true, message: 'Failed to update pin', type: 'error' });
+        } finally {
+            setPinLoading(false);
+        }
     };
 
     const handleCreatorClick = (e) => {
@@ -115,6 +152,7 @@ const CollectionCard = ({
     }, []);
 
     return (
+        <>
         <div className="pinterest-board" onClick={handleCardClick}>
             <div className="board-preview">
                 <div className="board-main-image">
@@ -147,19 +185,23 @@ const CollectionCard = ({
                     </div>
                 )}
 
-                {/* Hover Actions */}
+                {/* Hover: share for visitors; owners use footer Pin + Share, here only overflow menu */}
                 <div className="board-actions">
-                    <button
-                        className="board-action-btn"
-                        onClick={handleShareClick}
-                        title="Share"
-                    >
-                        <Share2 size={18} />
-                    </button>
+                    {!isOwner && (
+                        <button
+                            type="button"
+                            className="board-action-btn"
+                            onClick={handleShareClick}
+                            title="Share"
+                        >
+                            <Share2 size={18} />
+                        </button>
+                    )}
 
                     {isOwner && (
                         <div className="board-menu-container">
                             <button
+                                type="button"
                                 className="board-action-btn"
                                 onClick={handleMenuClick}
                                 title="More"
@@ -168,11 +210,11 @@ const CollectionCard = ({
                             </button>
                             {openMenu && (
                                 <div className="board-dropdown" onClick={(e) => e.stopPropagation()}>
-                                    <button onClick={(e) => { e.stopPropagation(); onEdit(collection); setOpenMenu(false); }}>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); onEdit?.(collection); setOpenMenu(false); }}>
                                         <Edit size={16} />
                                         Edit
                                     </button>
-                                    <button className="delete-btn" onClick={(e) => { e.stopPropagation(); onDelete(collection); setOpenMenu(false); }}>
+                                    <button type="button" className="delete-btn" onClick={(e) => { e.stopPropagation(); onDelete?.(collection); setOpenMenu(false); }}>
                                         <Trash2 size={16} />
                                         Delete
                                     </button>
@@ -245,8 +287,38 @@ const CollectionCard = ({
                         </span>
                     )}
                 </div>
+
+                {isOwner && (
+                    <div className="board-card-footer-actions" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            className={`board-action-btn collection-pin-footer-btn ${isPinned ? 'is-pinned' : ''}`}
+                            onClick={handlePinClick}
+                            disabled={pinLoading}
+                            title={isPinned ? 'Unpin collection' : 'Pin collection'}
+                        >
+                            <Pin size={16} strokeWidth={2.25} fill={isPinned ? 'currentColor' : 'none'} />
+                        </button>
+                        <button
+                            type="button"
+                            className="board-action-btn"
+                            onClick={handleShareClick}
+                            title="Share"
+                        >
+                            <Share2 size={16} />
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
+
+        <Snackbar
+            isVisible={snackbar.show}
+            message={snackbar.message}
+            type={snackbar.type}
+            onClose={() => setSnackbar((s) => ({ ...s, show: false }))}
+        />
+        </>
     );
 };
 

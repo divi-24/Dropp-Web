@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Settings as SettingsIcon, User, Lock, Moon, Globe, HelpCircle, AlertCircle, BadgeCheck } from 'lucide-react';
+import {
+    Bell, Settings as SettingsIcon, User, Lock, Moon, Sun, Monitor,
+    Globe, HelpCircle, AlertCircle, BadgeCheck,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../contexts/ThemeContext';
 import UpdatePasswordModal from '../components/UpdatePasswordModal';
 import { AnimatePresence } from 'framer-motion';
 import UserService from '../core/services/UserService';
@@ -10,6 +14,7 @@ import '../styles/Settings.css';
 
 const Settings = () => {
     const navigate = useNavigate();
+    const { themePreference, setThemePreference, theme: resolvedTheme } = useTheme();
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deleteUsername, setDeleteUsername] = useState('');
@@ -155,6 +160,43 @@ const Settings = () => {
                             <p>{loading ? 'Loading...' : (userProfile?.username ? `@${userProfile.username}` : '@username')}</p>
                         </div>
                         <button className="settings-btn">Change</button>
+                    </div>
+
+                    <div className="settings-item settings-item-appearance">
+                        <div className="settings-item-content settings-appearance-block">
+                            <h3>Appearance</h3>
+                            <p>
+                                {themePreference === 'system'
+                                    ? `Match device — using ${resolvedTheme === 'dark' ? 'dark' : 'light'} mode now`
+                                    : 'Choose a fixed look for Dropp'}
+                            </p>
+                            <div className="settings-appearance-modes" role="group" aria-label="Color theme">
+                                <button
+                                    type="button"
+                                    className={`settings-appearance-btn ${themePreference === 'light' ? 'active' : ''}`}
+                                    onClick={() => setThemePreference('light')}
+                                >
+                                    <Sun size={18} strokeWidth={2} />
+                                    <span>Light</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`settings-appearance-btn ${themePreference === 'dark' ? 'active' : ''}`}
+                                    onClick={() => setThemePreference('dark')}
+                                >
+                                    <Moon size={18} strokeWidth={2} />
+                                    <span>Dark</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`settings-appearance-btn ${themePreference === 'system' ? 'active' : ''}`}
+                                    onClick={() => setThemePreference('system')}
+                                >
+                                    <Monitor size={18} strokeWidth={2} />
+                                    <span>System</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </section>
 

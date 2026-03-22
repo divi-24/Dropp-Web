@@ -36,7 +36,11 @@ const ProfileTabs = ({ collections, sharedCollections = [], activeTab: initialTa
     }, []);
 
     const handleCollectionClick = (collectionId, e) => {
-        if (e.target.closest('.board-actions') || e.target.closest('.share-popup')) return;
+        if (
+            e.target.closest('.board-actions')
+            || e.target.closest('.share-popup')
+            || e.target.closest('.board-card-footer-actions')
+        ) return;
         navigate(`/c/${collectionId}`);
     };
 
@@ -136,6 +140,7 @@ const ProfileTabs = ({ collections, sharedCollections = [], activeTab: initialTa
                                     key={collection._id || collection.id}
                                     collection={collection}
                                     isOwner={isOwner}
+                                    onUpdateCollection={isOwner ? onUpdateCollection : undefined}
                                     onEdit={isOwner ? (c) => {
                                         setEditingCollection(c);
                                     } : undefined}
