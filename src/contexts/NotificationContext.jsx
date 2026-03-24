@@ -39,7 +39,7 @@ export const NotificationProvider = ({ children }) => {
 
     useEffect(() => {
         if (isAuthenticated && token) {
-            const socketUrl = 'https://dropp-0oxl.onrender.com';
+            const socketUrl = import.meta.env.VITE_API_BASE_URL || 'https://dropp-0oxl.onrender.com';
             const socketInstance = io(socketUrl, {
                 auth: {
                     token: token,
