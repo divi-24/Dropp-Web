@@ -5,16 +5,9 @@ import CollectionService from '../core/services/CollectionService';
 import Snackbar from './Snackbar';
 import '../styles/CreateCollectionModal.css';
 
-const CATEGORY_OPTIONS = [
-    'Design', 'Tech', 'Art', 'Photography', 'Fashion',
-    'Architecture', 'Interior', 'Lifestyle', 'Travel',
-    'Music', 'Food', 'Sports', 'Gaming', 'Education', 'Other'
-];
-
 const EditCollectionModal = ({ isOpen, onClose, collection, onUpdate }) => {
     const [name, setName] = useState('');
     const [desc, setDesc] = useState('');
-    const [category, setCategory] = useState([]);
     const [loading, setLoading] = useState(false);
     const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success' });
 
@@ -22,7 +15,6 @@ const EditCollectionModal = ({ isOpen, onClose, collection, onUpdate }) => {
         if (collection) {
             setName(collection.title || '');
             setDesc(collection.desc || '');
-            setCategory(collection.category || []);
         }
     }, [collection]);
 
@@ -36,12 +28,12 @@ const EditCollectionModal = ({ isOpen, onClose, collection, onUpdate }) => {
 
         setLoading(true);
         try {
-            await CollectionService.updateCollection(collection._id, name, desc, category);
+            await CollectionService.updateCollection(collection._id, name, desc);
             setSnackbar({ show: true, message: 'Collection updated successfully!', type: 'success' });
 
             // Notify parent component to refresh data instantly
             // Pass the updated partial data so parent can optimistically update
-            onUpdate({ ...collection, title: name, desc: desc, category: category });
+            onUpdate({ ...collection, title: name, desc: desc });
 
             setTimeout(() => {
                 onClose();
@@ -120,29 +112,6 @@ const EditCollectionModal = ({ isOpen, onClose, collection, onUpdate }) => {
                                 rows={4}
                                 maxLength={500}
                             />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Category</label>
-                            <div className="category-chips-container">
-                                {CATEGORY_OPTIONS.map(cat => (
-                                    <button
-                                        key={cat}
-                                        type="button"
-                                        className={`category-chip${category.includes(cat) ? ' selected' : ''}`}
-                                        onClick={() => {
-                                            setCategory(prev =>
-                                                prev.includes(cat)
-                                                    ? prev.filter(c => c !== cat)
-                                                    : [...prev, cat]
-                                            );
-                                        }}
-                                        disabled={loading}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
                         </div>
 
                         <div className="modal-actions">

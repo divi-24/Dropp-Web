@@ -590,50 +590,6 @@
         flex: none;
     }
 }
-/* ─── Category Chips ─────────────────────────────────────────────────────────── */
-.category-chips-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.category-chip {
-    padding: 0.4rem 0.875rem;
-    border-radius: 999px;
-    border: 1px solid var(--border-color);
-    background: var(--bg-secondary);
-    color: var(--text-secondary);
-    font-size: 0.8125rem;
-    font-weight: 500;
-    font-family: var(--font-sans);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    white-space: nowrap;
-}
-
-.category-chip:hover:not(:disabled) {
-    border-color: var(--accent-blue, #3887F8);
-    color: var(--text-primary);
-    background: var(--bg-tertiary);
-}
-
-.category-chip.selected {
-    background: var(--accent-blue, #3887F8);
-    border-color: var(--accent-blue, #3887F8);
-    color: #fff;
-}
-
-.category-chip.selected:hover:not(:disabled) {
-    opacity: 0.85;
-    background: var(--accent-blue, #3887F8);
-    color: #fff;
-}
-
-.category-chip:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 /* ─── Privacy Toggle ─────────────────────────────────────────────────────────── */
 .privacy-toggle-row {
     display: flex;
