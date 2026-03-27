@@ -10,10 +10,17 @@ import Snackbar from './Snackbar';
 import '../styles/CreateCollectionModal.css';
 import '../styles/InviteMemberModal.css';
 
+const CATEGORY_OPTIONS = [
+    'Design', 'Tech', 'Art', 'Photography', 'Fashion',
+    'Architecture', 'Interior', 'Lifestyle', 'Travel',
+    'Music', 'Food', 'Sports', 'Gaming', 'Education', 'Other'
+];
+
 const CreateCollectionModal = ({ isOpen, onClose }) => {
     const [step, setStep] = useState('create'); // 'create' | 'invite'
     const [title, setTitle] = useState('');
     const [desc, setDesc] = useState('');
+    const [category, setCategory] = useState([]);
     const [isPrivate, setIsPrivate] = useState(false);
     const [loading, setLoading] = useState(false);
     const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success' });
@@ -44,10 +51,14 @@ const CreateCollectionModal = ({ isOpen, onClose }) => {
             setSnackbar({ show: true, message: 'Collection description is required', type: 'error' });
             return;
         }
+        if (category.length === 0) {
+            setSnackbar({ show: true, message: 'Please select at least one category', type: 'error' });
+            return;
+        }
 
         setLoading(true);
         try {
-            const response = await CollectionService.createCollection(title, desc, isPrivate);
+            const response = await CollectionService.createCollection(title, desc, category);
             const newCollection = response?.result || response?.collection || response?.data || response;
             const collectionId = newCollection?._id || newCollection?.id || response?._id || response?.id;
 
@@ -55,6 +66,12 @@ const CreateCollectionModal = ({ isOpen, onClose }) => {
             fetchCollections();
 
             if (isPrivate && collectionId) {
+                // Set visibility to private after creation
+                try {
+                    await CollectionService.updateCollectionVisibility(collectionId, true);
+                } catch (visErr) {
+                    console.warn('Failed to set private visibility:', visErr);
+                }
                 setCreatedCollectionId(collectionId);
                 setStep('invite');
             } else {
@@ -133,6 +150,7 @@ const CreateCollectionModal = ({ isOpen, onClose }) => {
         }
         setTitle('');
         setDesc('');
+        setCategory([]);
         setIsPrivate(false);
         setStep('create');
         setCreatedCollectionId(null);
@@ -199,6 +217,29 @@ const CreateCollectionModal = ({ isOpen, onClose }) => {
                                         rows={4}
                                         maxLength={500}
                                     />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Category *</label>
+                                    <div className="category-chips-container">
+                                        {CATEGORY_OPTIONS.map(cat => (
+                                            <button
+                                                key={cat}
+                                                type="button"
+                                                className={`category-chip${category.includes(cat) ? ' selected' : ''}`}
+                                                onClick={() => {
+                                                    setCategory(prev =>
+                                                        prev.includes(cat)
+                                                            ? prev.filter(c => c !== cat)
+                                                            : [...prev, cat]
+                                                    );
+                                                }}
+                                                disabled={loading}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
 
                                 <div className="privacy-toggle-row">

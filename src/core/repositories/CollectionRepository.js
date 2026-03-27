@@ -40,7 +40,7 @@ class CollectionRepository {
      */
     async getPublicCollection(id) {
         const response = await apiClient.get(`${API_CONFIG.ENDPOINTS.COLLECTION_BY_ID}/${id}`, {
-            headers: { Authorization: undefined }
+            skipAuth: true
         });
         return response.data;
     }
@@ -54,7 +54,7 @@ class CollectionRepository {
         const response = await apiClient.post(API_CONFIG.ENDPOINTS.COLLECTIONS, {
             title: data.title,
             desc: data.desc,
-            isCollectionPrivate: Boolean(data.isPrivate)
+            category: data.category || [],
         });
         return response.data;
     }
@@ -77,10 +77,14 @@ class CollectionRepository {
      */
     async updateCollection(id, data) {
         // Use PATCH /c/{id} as requested
-        const response = await apiClient.patch(`${API_CONFIG.ENDPOINTS.COLLECTIONS}/${id}`, {
+        const payload = {
             title: data.title,
-            desc: data.desc
-        });
+            desc: data.desc,
+        };
+        if (data.category !== undefined) {
+            payload.category = data.category;
+        }
+        const response = await apiClient.patch(`${API_CONFIG.ENDPOINTS.COLLECTIONS}/${id}`, payload);
         return response.data;
     }
 

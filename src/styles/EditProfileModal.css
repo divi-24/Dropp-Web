@@ -454,3 +454,84 @@
     color: #16a34a;
     border-color: rgba(22, 163, 74, 0.2);
 }
+
+/* ─── Interests Tag Input ────────────────────────────────────── */
+.interests-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    min-height: 48px;
+    align-items: center;
+    transition: border-color var(--transition-fast);
+}
+.interests-tags-container:focus-within {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px var(--glass-border);
+}
+
+.interest-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: var(--accent-blue, #3887F8);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.interest-tag-remove {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 2px;
+    cursor: pointer;
+    transition: color 0.15s;
+}
+.interest-tag-remove:hover { color: #fff; }
+
+.interest-input {
+    flex: 1;
+    min-width: 100px;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 0.9375rem;
+    font-family: var(--font-sans);
+    outline: none;
+    padding: 4px 0;
+}
+.interest-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.interest-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-top: 0.5rem;
+}
+.interest-suggestion-chip {
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: var(--font-sans);
+}
+.interest-suggestion-chip:hover {
+    border-color: var(--accent-blue, #3887F8);
+    color: var(--accent-blue, #3887F8);
+    background: var(--bg-tertiary);
+}

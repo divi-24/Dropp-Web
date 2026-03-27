@@ -66,7 +66,7 @@ class CollectionService {
      * @param {string} desc - Collection description
      * @returns {Promise<Object>}
      */
-    async createCollection(title, desc, isPrivate = false) {
+    async createCollection(title, desc, category = []) {
         try {
             if (!title || !title.trim()) {
                 throw new Error('Collection title is required');
@@ -75,7 +75,7 @@ class CollectionService {
             const response = await CollectionRepository.createCollection({
                 title: title.trim(),
                 desc: desc?.trim() || '',
-                isPrivate
+                category: category,
             });
 
             return response;
@@ -114,16 +114,21 @@ class CollectionService {
      * @param {string} desc - Updated collection description
      * @returns {Promise<Object>}
      */
-    async updateCollection(id, title, desc) {
+    async updateCollection(id, title, desc, category) {
         try {
             if (!title || !title.trim()) {
                 throw new Error('Collection title is required');
             }
 
-            const response = await CollectionRepository.updateCollection(id, {
+            const data = {
                 title: title.trim(),
-                desc: desc?.trim() || ''
-            });
+                desc: desc?.trim() || '',
+            };
+            if (category !== undefined) {
+                data.category = category;
+            }
+
+            const response = await CollectionRepository.updateCollection(id, data);
 
             return response;
         } catch (error) {

@@ -13,6 +13,14 @@ const PRONOUNS = [
     "other"
 ];
 
+const GENDER_OPTIONS = ["Male", "Female", "Rather Not to Say"];
+
+const INTEREST_SUGGESTIONS = [
+    'Design', 'Tech', 'Art', 'Photography', 'Fashion',
+    'Architecture', 'Interior', 'Lifestyle', 'Travel',
+    'Music', 'Food', 'Sports', 'Gaming', 'Education'
+];
+
 const EditProfileModal = ({ user, onClose, onUpdate }) => {
     const [formData, setFormData] = useState({
         fullName: '',
@@ -22,8 +30,11 @@ const EditProfileModal = ({ user, onClose, onUpdate }) => {
         location: '',
         pronoun: '',
         dob: '',
+        gender: '',
         profileImageUrl: ''
     });
+    const [interests, setInterests] = useState([]);
+    const [interestInput, setInterestInput] = useState('');
 
     const [profileImageFile, setProfileImageFile] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
@@ -48,9 +59,11 @@ const EditProfileModal = ({ user, onClose, onUpdate }) => {
                 link: user.link || '',
                 location: user.location || '',
                 pronoun: user.pronoun || '',
-                dob: user.dob ? user.dob.split('T')[0] : '', // Format for date input
+                dob: user.dob ? user.dob.split('T')[0] : '',
+                gender: user.gender || '',
                 profileImageUrl: user.profileImageUrl || ''
             });
+            setInterests(user.interests || []);
 
             if (user.profileImageUrl) {
                 if (user.profileImageUrl.startsWith('http') || user.profileImageUrl.startsWith('data:')) {
@@ -177,6 +190,12 @@ const EditProfileModal = ({ user, onClose, onUpdate }) => {
             data.append('location', formData.location);
             data.append('link', formData.link);
             data.append('dob', formData.dob);
+            data.append('gender', formData.gender);
+
+            // Handle interests
+            interests.forEach(interest => {
+                data.append('interests', interest);
+            });
 
             // Handle Username
             if (formData.username !== user.username) {
@@ -373,6 +392,68 @@ const EditProfileModal = ({ user, onClose, onUpdate }) => {
                                 value={formData.dob}
                                 onChange={handleInputChange}
                             />
+                        </div>
+
+                        <div className="form-group">
+                            <label>Gender</label>
+                            <select
+                                name="gender"
+                                className="form-select"
+                                value={formData.gender}
+                                onChange={handleInputChange}
+                            >
+                                <option value="">Select gender</option>
+                                {GENDER_OPTIONS.map(g => (
+                                    <option key={g} value={g}>{g}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Interests</label>
+                            <div className="interests-tags-container">
+                                {interests.map((interest, i) => (
+                                    <span key={i} className="interest-tag">
+                                        {interest}
+                                        <button
+                                            type="button"
+                                            className="interest-tag-remove"
+                                            onClick={() => setInterests(prev => prev.filter((_, idx) => idx !== i))}
+                                        >
+                                            &times;
+                                        </button>
+                                    </span>
+                                ))}
+                                <input
+                                    type="text"
+                                    className="interest-input"
+                                    value={interestInput}
+                                    onChange={(e) => setInterestInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if ((e.key === 'Enter' || e.key === ',') && interestInput.trim()) {
+                                            e.preventDefault();
+                                            const val = interestInput.trim().replace(/,$/, '');
+                                            if (val && !interests.includes(val)) {
+                                                setInterests(prev => [...prev, val]);
+                                            }
+                                            setInterestInput('');
+                                        }
+                                    }}
+                                    placeholder={interests.length === 0 ? 'Type and press Enter…' : 'Add more…'}
+                                />
+                            </div>
+                            <div className="interest-suggestions">
+                                {INTEREST_SUGGESTIONS.filter(s => !interests.includes(s)).slice(0, 8).map(s => (
+                                    <button
+                                        key={s}
+                                        type="button"
+                                        className="interest-suggestion-chip"
+                                        onClick={() => setInterests(prev => [...prev, s])}
+                                    >
+                                        + {s}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
