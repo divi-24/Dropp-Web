@@ -635,56 +635,6 @@
 .pdp-options-dropdown button.pdp-danger { color: #ef4444; }
 .pdp-options-dropdown button.pdp-danger:hover { background: rgba(239, 68, 68, 0.07); }
 
-/* Boost dropdown */
-.pdp-boost-wrap { position: relative; }
-.pdp-boost-dropdown {
-    position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
-    overflow: hidden;
-    min-width: 158px;
-    z-index: 100;
-    animation: pdpDropdownIn 0.15s ease;
-}
-[data-theme='dark'] .pdp-boost-dropdown {
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
-}
-.pdp-boost-dropdown-title {
-    display: block;
-    padding: 0.5rem 1rem 0.375rem;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-tertiary);
-    border-bottom: 1px solid var(--border-color);
-}
-.pdp-boost-dropdown button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding: 0.625rem 1rem;
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    font-weight: 500;
-    font-family: var(--font-sans);
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-    text-align: left;
-}
-.pdp-boost-dropdown button:hover {
-    background: var(--bg-tertiary);
-    color: var(--accent-blue, #3887F8);
-}
-
 /* View profile link button */
 .pdp-view-profile-btn {
     width: 100%;
