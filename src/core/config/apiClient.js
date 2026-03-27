@@ -13,6 +13,11 @@ const apiClient = axios.create({
 // Request interceptor - Add auth token to requests
 apiClient.interceptors.request.use(
     (config) => {
+        // Allow specific requests to skip auth (e.g., public collection fetches)
+        if (config.skipAuth) {
+            delete config.headers.Authorization;
+            return config;
+        }
         const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
         if (token) {
             console.log(`[ApiClient] Attaching token: ${token.substring(0, 10)}...`);

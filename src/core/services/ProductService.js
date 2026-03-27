@@ -148,8 +148,8 @@ class ProductService {
         return ProductRepository.pinProduct(id);
     }
 
-    async featureProduct(id) {
-        return ProductRepository.featureProduct(id);
+    async featureProduct(id, duration = 24) {
+        return ProductRepository.featureProduct(id, duration);
     }
 }
 

@@ -127,8 +127,8 @@ class ProductRepository {
         return response.data;
     }
 
-    async featureProduct(id) {
-        const response = await apiClient.post(`${API_CONFIG.ENDPOINTS.FEATURE_PRODUCT}/${id}/feature`);
+    async featureProduct(id, duration = 24) {
+        const response = await apiClient.post(`${API_CONFIG.ENDPOINTS.FEATURE_PRODUCT}/${id}/feature`, { duration });
         return response.data;
     }
 }

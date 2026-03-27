@@ -39,9 +39,11 @@ const ProductDetailPage = () => {
     const [followModal, setFollowModal] = useState({ isOpen: false, type: 'followers' });
     const [pinLoading, setPinLoading] = useState(false);
     const [featureLoading, setFeatureLoading] = useState(false);
+    const [showBoostMenu, setShowBoostMenu] = useState(false);
 
     const touchStartX = useRef(null);
     const optionsRef = useRef(null);
+    const boostRef = useRef(null);
 
     const currentUserId = user?.id || user?._id;
     const isOwner = isAuthenticated && creator && currentUserId &&
@@ -55,6 +57,9 @@ const ProductDetailPage = () => {
         const handleClickOutside = (e) => {
             if (optionsRef.current && !optionsRef.current.contains(e.target)) {
                 setShowOptions(false);
+            }
+            if (boostRef.current && !boostRef.current.contains(e.target)) {
+                setShowBoostMenu(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -193,21 +198,24 @@ const ProductDetailPage = () => {
         }
     };
 
-    const handleFeatureProduct = async () => {
+    const handleFeatureProduct = async (duration) => {
         if (!isOwner || featureLoading) return;
-        const nextFeatured = !product?.isFeatured;
         setFeatureLoading(true);
-        setProduct((prev) => ({ ...prev, isFeatured: nextFeatured }));
+        setShowBoostMenu(false);
         try {
-            await ProductService.featureProduct(id);
+            await ProductService.featureProduct(id, duration);
+            setProduct((prev) => ({
+                ...prev,
+                featuredUntil: new Date(Date.now() + duration * 60 * 60 * 1000).toISOString(),
+                featuredAt: new Date().toISOString(),
+            }));
             setSnackbar({
                 show: true,
-                message: nextFeatured ? 'Product marked as featured' : 'Product unfeatured',
+                message: `Product boosted for ${duration} hours!`,
                 type: 'success'
             });
         } catch (error) {
-            setProduct((prev) => ({ ...prev, isFeatured: !nextFeatured }));
-            setSnackbar({ show: true, message: 'Failed to update featured status', type: 'error' });
+            setSnackbar({ show: true, message: 'Failed to boost product', type: 'error' });
         } finally {
             setFeatureLoading(false);
         }
@@ -483,14 +491,26 @@ const ProductDetailPage = () => {
                                         )}
 
                                         {isOwner && (
-                                            <button
-                                                className={`pdp-action-btn${product?.isFeatured ? ' pdp-liked' : ''}`}
-                                                onClick={handleFeatureProduct}
-                                                disabled={featureLoading}
-                                            >
-                                                <Sparkles size={16} />
-                                                {product?.isFeatured ? 'Featured' : 'Feature'}
-                                            </button>
+                                            <div className="pdp-boost-wrap" ref={boostRef}>
+                                                <button
+                                                    className={`pdp-action-btn${(product?.featuredUntil && new Date(product.featuredUntil) > new Date()) ? ' pdp-liked' : ''}`}
+                                                    onClick={() => setShowBoostMenu(prev => !prev)}
+                                                    disabled={featureLoading}
+                                                >
+                                                    <Sparkles size={16} />
+                                                    {(product?.featuredUntil && new Date(product.featuredUntil) > new Date()) ? 'Boosted' : 'Boost'}
+                                                </button>
+                                                {showBoostMenu && (
+                                                    <div className="pdp-boost-dropdown">
+                                                        <span className="pdp-boost-dropdown-title">Boost Duration</span>
+                                                        {[6, 12, 24, 48, 72].map(h => (
+                                                            <button key={h} onClick={() => handleFeatureProduct(h)}>
+                                                                {h} hours
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
 
